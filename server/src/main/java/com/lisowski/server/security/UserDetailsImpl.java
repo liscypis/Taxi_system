@@ -20,16 +20,24 @@ public class UserDetailsImpl implements UserDetails {
 
     @Getter(value = AccessLevel.PUBLIC)
     private Long id;
+
     @Getter(value = AccessLevel.PUBLIC)
     private String name;
+
+    @Getter(value = AccessLevel.PUBLIC)
     private String surname;
+
     private String userName;
+
     @JsonIgnore
     private String password;
+
     @Getter(value = AccessLevel.PUBLIC)
     private String email;
+
     @Getter(value = AccessLevel.PUBLIC)
     private String phoneNum;
+
     private Collection<? extends GrantedAuthority> authorities;
 
     public static UserDetailsImpl build(User user) {
