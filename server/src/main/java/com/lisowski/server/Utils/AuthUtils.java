@@ -12,11 +12,9 @@ import java.util.Date;
 @Component
 public class AuthUtils {
 
-    @Value("${lisowski.app.jwtSecret}")
-    private String jwtSecret;
+    private String jwtSecret = "lisSecretKey";
 
-    @Value("${lisowski.app.jwtExpirationMS}")
-    private int jwtExpirationMS;
+    private int jwtExpirationMS = 86400000;
 
     public String generateJWTToken(Authentication authentication) {
         UserDetailsImpl principal = (UserDetailsImpl) authentication.getPrincipal();
