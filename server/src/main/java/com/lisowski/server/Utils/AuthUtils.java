@@ -22,7 +22,7 @@ public class AuthUtils {
                 .setSubject(principal.getUsername())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(new Date().getTime() + jwtExpirationMS))
-                .signWith(SignatureAlgorithm.ES512, jwtSecret)
+                .signWith(SignatureAlgorithm.HS512, jwtSecret)
                 .compact();
     }
     public boolean validateJwtToken(String token) {

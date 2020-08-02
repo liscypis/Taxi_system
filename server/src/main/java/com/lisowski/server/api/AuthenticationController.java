@@ -1,4 +1,4 @@
-package com.lisowski.server.api.controller;
+package com.lisowski.server.api;
 
 import com.lisowski.server.DTO.request.LoginParam;
 import com.lisowski.server.DTO.request.SignupRequest;
@@ -17,7 +17,7 @@ public class AuthenticationController {
     @Autowired
     private AuthenticationService authenticationService;
 
-    @PostMapping("/signip")
+    @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginParam loginParam) {
        return authenticationService.authenticateUser(loginParam);
     }
