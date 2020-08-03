@@ -63,6 +63,8 @@ public class AuthenticationService {
             if (!user.get().getUserName().equals("")){
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Phone number is already in use");
             } else {
+                checkEmailAndUserName(signupRequest);
+
                 User modifiedUser = user.get();
                 modifiedUser.setName(signupRequest.getName());
                 modifiedUser.setSurname(signupRequest.getSurname());
@@ -75,10 +77,7 @@ public class AuthenticationService {
                 return ResponseEntity.ok("User created successfully!");
             }
         } else {
-            if (userRepository.existsByUserName(signupRequest.getName()))
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is already in use");
-            if (userRepository.existsByEmail(signupRequest.getEmail()))
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is already in use");
+            checkEmailAndUserName(signupRequest);
 
             Set<String> roles = signupRequest.getRoles();
             User newUser = new User();
@@ -96,6 +95,15 @@ public class AuthenticationService {
 
 
         return ResponseEntity.ok("User created successfully!");
+    }
+
+    private void checkEmailAndUserName(SignupRequest signupRequest) {
+        if(!signupRequest.getUserName().equals("") || !signupRequest.getEmail().equals("")) {
+            if (userRepository.existsByUserName(signupRequest.getUserName()))
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is already in use");
+            if (userRepository.existsByEmail(signupRequest.getEmail()))
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is already in use");
+        }
     }
 
     private Set<Role> checkRoles(Set<String> roles) {

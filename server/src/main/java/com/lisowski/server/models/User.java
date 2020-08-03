@@ -20,17 +20,21 @@ public class User {
     @Column(length = 40)
     private String surname;
 
-    @Column(unique = true, length = 20)
+    @Column(length = 20)
     private String userName;
 
     @Column(length = 150)
     private String password;
 
-    @Column(unique = true, length = 40)
+    @Column(length = 40)
     private String email;
 
     @Column(unique = true, length = 9, nullable = false)
     private String phoneNum;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "car_id", referencedColumnName = "id")
+    private Car car;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles",
