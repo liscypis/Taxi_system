@@ -1,7 +1,9 @@
 package com.lisowski.server.api;
 
 import com.lisowski.server.DTO.UserDTO;
+import com.lisowski.server.DTO.request.AddCarRequest;
 import com.lisowski.server.DTO.request.LoginParam;
+import com.lisowski.server.DTO.request.SignupRequest;
 import com.lisowski.server.repository.RoleRepository;
 import com.lisowski.server.repository.UserRepository;
 import com.lisowski.server.services.UserService;
@@ -24,4 +26,9 @@ public class UserController {
     public ResponseEntity<List<UserDTO>> authenticateUser(@PathVariable("role") String role) {
         return userService.getUsersByRole(role);
     }
+    @DeleteMapping("/deleteUser/{userID}")
+    public ResponseEntity<?> editCar(@PathVariable("userID") Long id) {
+        return userService.deleteUser(id);
+    }
+
 }

@@ -1,6 +1,8 @@
 package com.lisowski.server.services;
 
 import com.lisowski.server.DTO.UserDTO;
+import com.lisowski.server.DTO.request.AddCarRequest;
+import com.lisowski.server.models.Car;
 import com.lisowski.server.models.ERole;
 import com.lisowski.server.models.Role;
 import com.lisowski.server.models.User;
@@ -47,5 +49,16 @@ public class UserService {
         }
         else
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role");
+    }
+
+
+    public ResponseEntity<?> deleteUser(Long id) {
+        Optional<User> userOptional = userRepository.findById(id);
+        if(userOptional.isPresent()){
+            userRepository.deleteById(id);
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found");
+        }
+        return ResponseEntity.ok("User deleted successfully!");
     }
 }
