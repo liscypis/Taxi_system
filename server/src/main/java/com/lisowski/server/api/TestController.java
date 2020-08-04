@@ -1,8 +1,5 @@
 package com.lisowski.server.api;
 
-import com.lisowski.server.models.ERole;
-import com.lisowski.server.models.Role;
-import com.lisowski.server.models.User;
 import com.lisowski.server.repository.RoleRepository;
 import com.lisowski.server.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,11 +8,6 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -26,6 +18,7 @@ public class TestController {
     UserRepository userRepository;
     @Autowired
     RoleRepository roleRepository;
+
 
     @GetMapping("/all")
     public String allAccess() {
@@ -58,4 +51,5 @@ public class TestController {
     public String adminAccess() {
         return "Admin Board.";
     }
+
 }

@@ -1,5 +1,7 @@
 package com.lisowski.server.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -51,6 +53,8 @@ public class User {
     @OneToOne(mappedBy = "user")
     private Ride ride;
 
+
+//    @JsonBackReference
     @OneToOne(mappedBy = "driver")
     private DriverPositionHistory driverPositionHistory;
 

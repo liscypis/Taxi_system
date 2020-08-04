@@ -1,11 +1,15 @@
 package com.lisowski.server.services;
 
 import com.lisowski.server.DTO.request.AddCarRequest;
+import com.lisowski.server.DTO.request.LocationLog;
 import com.lisowski.server.models.Car;
+import com.lisowski.server.models.DriverPositionHistory;
 import com.lisowski.server.models.User;
 import com.lisowski.server.repository.CarRepository;
+import com.lisowski.server.repository.DriverPosHistRepository;
 import com.lisowski.server.repository.RoleRepository;
 import com.lisowski.server.repository.UserRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
+import java.time.Instant;
 
 @Service
 public class DriverService {
@@ -23,6 +28,8 @@ public class DriverService {
     RoleRepository roleRepository;
     @Autowired
     CarRepository carRepository;
+    @Autowired
+    DriverPosHistRepository driverPosHistRepository;
 
     public ResponseEntity<?> addCarToDriver(AddCarRequest request) {
         Optional<User> userOptional = userRepository.findById(request.getDriverID());
@@ -65,5 +72,18 @@ public class DriverService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "car not found");
         }
         return ResponseEntity.ok("Car deleted successfully!");
+    }
+
+    public ResponseEntity<?> addLocalization(LocationLog locationLog) {
+        Optional<User> userOptional = userRepository.findById(locationLog.getDriverId());
+        if(userOptional.isPresent()){
+            DriverPositionHistory position = new DriverPositionHistory();
+            position.setDriver(userOptional.get());
+            position.setLocation(locationLog.getLocation());
+            driverPosHistRepository.save(position);
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Driver not found");
+        }
+        return ResponseEntity.ok("Location added successfully!");
     }
 }

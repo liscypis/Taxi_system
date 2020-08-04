@@ -1,6 +1,7 @@
 package com.lisowski.server.api;
 
 import com.lisowski.server.DTO.request.AddCarRequest;
+import com.lisowski.server.DTO.request.LocationLog;
 import com.lisowski.server.models.Car;
 import com.lisowski.server.services.DriverService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +28,15 @@ public class DriverController {
     public ResponseEntity<?> editCar(@Valid @RequestBody Car request) {
         return driverService.updateCar(request);
     }
+
     @DeleteMapping("/deleteCar/{carID}")
     public ResponseEntity<?> editCar(@PathVariable("carID") Long id) {
         return driverService.deleteCar(id);
     }
+
+    @PostMapping("/addLocation")
+    public ResponseEntity<?> editCar(@Valid @RequestBody LocationLog request) {
+        return driverService.addLocalization(request);
+    }
+
 }
