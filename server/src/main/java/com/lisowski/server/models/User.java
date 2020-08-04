@@ -42,4 +42,16 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles;
 
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinTable(name = "driver_status",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "status_id"))
+    private Status status;
+
+    @OneToOne(mappedBy = "user")
+    private Ride ride;
+
+    @OneToOne(mappedBy = "driver")
+    private DriverPositionHistory driverPositionHistory;
+
 }
