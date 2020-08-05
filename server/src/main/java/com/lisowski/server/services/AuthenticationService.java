@@ -45,6 +45,7 @@ public class AuthenticationService {
     @Autowired
     AuthUtils authUtils;
 
+
     public ResponseEntity<?> authenticateUser(LoginParam loginParam) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginParam.getUserName(), loginParam.getPassword()));

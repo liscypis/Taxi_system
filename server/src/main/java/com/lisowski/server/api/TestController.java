@@ -2,6 +2,7 @@ package com.lisowski.server.api;
 
 import com.lisowski.server.repository.RoleRepository;
 import com.lisowski.server.repository.UserRepository;
+import com.lisowski.server.services.map.GoogleMapService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/api/s")
+@RequestMapping("/api/test")
 public class TestController {
 
     @Autowired
@@ -19,10 +20,13 @@ public class TestController {
     @Autowired
     RoleRepository roleRepository;
 
+    @Autowired
+    GoogleMapService googleMapService;
+
 
     @GetMapping("/all")
-    public String allAccess() {
-        return "Public Content.";
+    public Long allAccess() {
+        return googleMapService.findClosestDriver();
     }
 
 

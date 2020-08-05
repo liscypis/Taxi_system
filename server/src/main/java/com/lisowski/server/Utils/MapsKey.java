@@ -1,5 +1,5 @@
 package com.lisowski.server.Utils;
 
 public class MapsKey {
-    private static final String API_KEY = "new key";
+    public static final String API_KEY = "AIzaSyCbPoPSc5SRZy21nq5I7sfKrc8MJGazcBg";
 }
