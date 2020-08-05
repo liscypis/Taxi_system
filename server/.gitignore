@@ -32,6 +32,4 @@ build/
 ### VS Code ###
 .vscode/
 
-
-src/main/java/com/lisowski/server/Utils/MapsKey.java
-
+!/src/main/java/com/lisowski/server/Utils/MapsKey.java
