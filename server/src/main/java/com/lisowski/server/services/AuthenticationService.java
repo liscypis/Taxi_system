@@ -4,10 +4,9 @@ import com.lisowski.server.DTO.request.LoginParam;
 import com.lisowski.server.DTO.request.SignupRequest;
 import com.lisowski.server.DTO.response.LoginResponse;
 import com.lisowski.server.Utils.AuthUtils;
-import com.lisowski.server.models.ERole;
-import com.lisowski.server.models.Role;
-import com.lisowski.server.models.User;
+import com.lisowski.server.models.*;
 import com.lisowski.server.repository.RoleRepository;
+import com.lisowski.server.repository.StatusRepository;
 import com.lisowski.server.repository.UserRepository;
 import com.lisowski.server.security.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +43,9 @@ public class AuthenticationService {
 
     @Autowired
     AuthUtils authUtils;
+
+    @Autowired
+    StatusRepository statusRepository;
 
 
     public ResponseEntity<?> authenticateUser(LoginParam loginParam) {
@@ -90,6 +92,11 @@ public class AuthenticationService {
             newUser.setEmail(signupRequest.getEmail());
             newUser.setPhoneNum(signupRequest.getPhoneNum());
             newUser.setRoles(checkRoles(roles));
+            if(roles.contains("driver")){
+                Optional<Status> fStatus = statusRepository.findByStatus(EStatus.STATUS_OFFLINE);
+                fStatus.ifPresent(newUser::setStatus);
+                fStatus.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status dont find"));
+            }
 
             userRepository.save(newUser);
         }

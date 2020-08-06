@@ -1,6 +1,7 @@
 package com.lisowski.server.models;
 
 import lombok.Data;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.time.Instant;
@@ -14,7 +15,12 @@ public class RideDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @UpdateTimestamp
+    @Column(nullable = false, columnDefinition = "TIMESTAMP")
     private Instant timeStart;
+
+    private Instant timeArriveToUser;
     private Instant timeEnd;
     private String startPoint;
     private String endPoint;

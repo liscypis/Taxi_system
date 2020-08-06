@@ -19,6 +19,7 @@ public class UserDTO {
     private String email;
     private String phoneNum;
     private Long carId;
+    private String status;
     private List<String> roles;
 
     public UserDTO(User user) {
@@ -28,6 +29,8 @@ public class UserDTO {
         this.userName = user.getUserName();
         this.email = user.getEmail();
         this.phoneNum = user.getPhoneNum();
+        if(user.getStatus() != null)
+            this.status = user.getStatus().getStatus().name();
         if(user.getCar() != null)
             this.carId = user.getCar().getId();
         this.roles = user.getRoles().stream()

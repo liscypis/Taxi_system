@@ -96,7 +96,7 @@ public class DriverService {
             } else
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Driver id not found");
         } else {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Driver role not found");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Driver status not found");
         }
         return ResponseEntity.ok("Status has been set successfully!");
     }

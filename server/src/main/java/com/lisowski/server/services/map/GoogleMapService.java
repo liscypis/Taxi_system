@@ -5,8 +5,9 @@ import com.google.maps.GeoApiContext;
 import com.google.maps.model.DistanceMatrix;
 import com.google.maps.model.DistanceMatrixRow;
 import com.lisowski.server.Utils.MapsKey;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
 
 @Service
 public class GoogleMapService {
@@ -16,23 +17,22 @@ public class GoogleMapService {
         this.context = new GeoApiContext.Builder().apiKey(MapsKey.API_KEY).build();
     }
 
-    public Long findClosestDriver() {
-//        DistanceMatrixApiRequest req = DistanceMatrixApi.newRequest(context)
-//                .origins("50.887521,20.659298")
-//                .destinations("50.888859,20.645138");
+    public Long findClosestDriver(String origin, String[] arrayOfPositions) {
+        System.out.println("destination " + origin);
+        System.out.println("origins " + Arrays.toString(arrayOfPositions));
         String[] origins  = new String[] {"50.874872,20.626861","50.887521,20.659298"};
         String[] destinations = new String[] { "50.888859,20.645138" };
 
-        try {
-            DistanceMatrix matrix =
-                    DistanceMatrixApi.getDistanceMatrix(this.context, origins, destinations).await();
-            System.out.println(matrix.toString());
-            DistanceMatrixRow[] rows = matrix.rows;
-
-            return findShortestTimeIndex(rows);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
+//        try {
+//            DistanceMatrix matrix =
+//                    DistanceMatrixApi.getDistanceMatrix(this.context, origins, destinations).await();
+//            System.out.println(matrix.toString());
+//            DistanceMatrixRow[] rows = matrix.rows;
+//
+//            return findShortestTimeIndex(rows);
+//        } catch (Exception e) {
+//            System.out.println(e.getMessage());
+//        }
         return null;
 
     }

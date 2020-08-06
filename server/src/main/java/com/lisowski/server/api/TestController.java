@@ -24,10 +24,11 @@ public class TestController {
     GoogleMapService googleMapService;
 
 
-    @GetMapping("/all")
-    public Long allAccess() {
-        return googleMapService.findClosestDriver();
-    }
+    //TODO wywalic
+//    @GetMapping("/all")
+//    public Long allAccess() {
+//        return googleMapService.findClosestDriver(request.getOrigin(), arrayOfPositions);
+//    }
 
 
 

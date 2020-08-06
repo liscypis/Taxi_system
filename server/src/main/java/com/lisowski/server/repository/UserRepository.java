@@ -1,8 +1,11 @@
 package com.lisowski.server.repository;
 
+import com.lisowski.server.models.EStatus;
 import com.lisowski.server.models.Role;
 import com.lisowski.server.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -21,4 +24,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Boolean existsByEmail(String email);
 
     Optional<List<User>> findByRolesIn(Set<Role> roles);
+
+    @Query("SELECT u.id from User as u WHERE u.status.status = :status ")
+    Optional<List<Long>> findIdsByStatus(@Param("status")EStatus status);
 }
