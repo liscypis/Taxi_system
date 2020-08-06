@@ -2,13 +2,9 @@ package com.lisowski.server.services;
 
 import com.lisowski.server.DTO.request.AddCarRequest;
 import com.lisowski.server.DTO.request.LocationLog;
-import com.lisowski.server.models.Car;
-import com.lisowski.server.models.DriverPositionHistory;
-import com.lisowski.server.models.User;
-import com.lisowski.server.repository.CarRepository;
-import com.lisowski.server.repository.DriverPosHistRepository;
-import com.lisowski.server.repository.RoleRepository;
-import com.lisowski.server.repository.UserRepository;
+import com.lisowski.server.DTO.request.StatusMessage;
+import com.lisowski.server.models.*;
+import com.lisowski.server.repository.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,6 +26,8 @@ public class DriverService {
     CarRepository carRepository;
     @Autowired
     DriverPosHistRepository driverPosHistRepository;
+    @Autowired
+    StatusRepository statusRepository;
 
     public ResponseEntity<?> addCarToDriver(AddCarRequest request) {
         Optional<User> userOptional = userRepository.findById(request.getDriverID());
@@ -85,5 +83,32 @@ public class DriverService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Driver not found");
         }
         return ResponseEntity.ok("Location added successfully!");
+    }
+
+    public ResponseEntity<?> setDriverStatus(StatusMessage message) {
+        Optional<Status> fStatus = checkStatusFromMessage(message);
+        if(fStatus.isPresent()) {
+            Optional<User> optDriver = userRepository.findById(message.getId());
+            if(optDriver.isPresent()){
+                User driver = optDriver.get();
+                driver.setStatus(fStatus.get());
+                userRepository.save(driver);
+            } else
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Driver id not found");
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Driver role not found");
+        }
+        return ResponseEntity.ok("Status has been set successfully!");
+    }
+
+    private Optional<Status> checkStatusFromMessage(StatusMessage message) {
+        Optional<Status> fStatus = Optional.empty();
+        if(message.getStatus().equals("offline"))
+            fStatus = statusRepository.findByStatus(EStatus.STATUS_OFFLINE);
+        if(message.getStatus().equals("available"))
+            fStatus = statusRepository.findByStatus(EStatus.STATUS_AVAILABLE);
+        if(message.getStatus().equals("busy"))
+            fStatus = statusRepository.findByStatus(EStatus.STATUS_BUSY);
+        return fStatus;
     }
 }

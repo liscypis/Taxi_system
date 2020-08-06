@@ -2,6 +2,7 @@ package com.lisowski.server.api;
 
 import com.lisowski.server.DTO.request.AddCarRequest;
 import com.lisowski.server.DTO.request.LocationLog;
+import com.lisowski.server.DTO.request.StatusMessage;
 import com.lisowski.server.models.Car;
 import com.lisowski.server.services.DriverService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,10 @@ public class DriverController {
     @PostMapping("/addLocation")
     public ResponseEntity<?> editCar(@Valid @RequestBody LocationLog request) {
         return driverService.addLocalization(request);
+    }
+    @PostMapping("/setStatus")
+    public ResponseEntity<?> setStatus(@Valid @RequestBody StatusMessage message) {
+        return driverService.setDriverStatus(message);
     }
 
 }

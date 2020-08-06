@@ -34,6 +34,7 @@ public class GoogleMapService {
             System.out.println(e.getMessage());
         }
         return null;
+
     }
 
     private long findShortestTimeIndex(DistanceMatrixRow[] rows) {
