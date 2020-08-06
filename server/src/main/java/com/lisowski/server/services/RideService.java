@@ -30,7 +30,7 @@ public class RideService {
     GoogleMapService googleMapService;
 
 
-    //TODO poprawic
+    //TODO add direction
     public ResponseEntity<?> createPreDetailsRide(RideRequest request) {
         Optional<User> optionalUser = userRepository.findById(request.getUserId());
         if(optionalUser.isPresent()) {
@@ -40,6 +40,7 @@ public class RideService {
                 List<String> driversPosition = lastPositions.stream().map(DriverPositionHistoryDTO::getLocation).collect(Collectors.toList());
                 String[] arrayOfPositions = driversPosition.toArray(String[]::new);
                 Long index = googleMapService.findClosestDriver(request.getOrigin(),arrayOfPositions);
+                System.out.println(lastPositions.get(index.intValue()));
 
             } else
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No drivers, try again later");

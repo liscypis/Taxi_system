@@ -20,19 +20,20 @@ public class GoogleMapService {
     public Long findClosestDriver(String origin, String[] arrayOfPositions) {
         System.out.println("destination " + origin);
         System.out.println("origins " + Arrays.toString(arrayOfPositions));
-        String[] origins  = new String[] {"50.874872,20.626861","50.887521,20.659298"};
-        String[] destinations = new String[] { "50.888859,20.645138" };
+        String[] origins = new String[] {origin};
+//        String[] origins  = new String[] {"50.874872,20.626861","50.887521,20.659298"};
+//        String[] destinations = new String[] { "50.888859,20.645138" };
 
-//        try {
-//            DistanceMatrix matrix =
-//                    DistanceMatrixApi.getDistanceMatrix(this.context, origins, destinations).await();
-//            System.out.println(matrix.toString());
-//            DistanceMatrixRow[] rows = matrix.rows;
-//
-//            return findShortestTimeIndex(rows);
-//        } catch (Exception e) {
-//            System.out.println(e.getMessage());
-//        }
+        try {
+            DistanceMatrix matrix =
+                    DistanceMatrixApi.getDistanceMatrix(this.context, arrayOfPositions, origins).await();
+            System.out.println(matrix.toString());
+            DistanceMatrixRow[] rows = matrix.rows;
+
+            return findShortestTimeIndex(rows);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
         return null;
 
     }
