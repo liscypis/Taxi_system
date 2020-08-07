@@ -41,6 +41,7 @@ public class RideService {
                 String[] arrayOfPositions = driversPosition.toArray(String[]::new);
                 Long index = googleMapService.findClosestDriver(request.getOrigin(),arrayOfPositions);
                 System.out.println(lastPositions.get(index.intValue()));
+                googleMapService.getDirection(lastPositions.get(index.intValue()).getLocation(),request.getDestination(),request.getOrigin());
 
             } else
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No drivers, try again later");

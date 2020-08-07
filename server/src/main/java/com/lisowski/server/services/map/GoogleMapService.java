@@ -1,13 +1,15 @@
 package com.lisowski.server.services.map;
 
+import com.google.maps.DirectionsApi;
 import com.google.maps.DistanceMatrixApi;
 import com.google.maps.GeoApiContext;
-import com.google.maps.model.DistanceMatrix;
-import com.google.maps.model.DistanceMatrixRow;
+import com.google.maps.model.*;
 import com.lisowski.server.Utils.MapsKey;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Service
 public class GoogleMapService {
@@ -48,5 +50,47 @@ public class GoogleMapService {
             }
         }
         return minIndex;
+    }
+
+    public void getDirection(String origin, String destination, String waypoint) {
+        System.out.println("Driver loc " + origin + " user loc " + waypoint + "user des " + destination);
+        try {
+            DirectionsResult result =
+                    DirectionsApi.newRequest(this.context)
+                            .units(Unit.METRIC)
+                            .region("pl")
+                            .origin(origin)
+                            .waypoints(waypoint)
+                            .destination(destination)
+                            .await();
+            GeocodedWaypoint[] geocodedWaypoint = result.geocodedWaypoints;
+            DirectionsRoute[] directionsRoutes = result.routes;
+            System.out.println(geocodedWaypoint.length);
+
+            for (GeocodedWaypoint waypointStatus : geocodedWaypoint) {
+                System.out.println(waypointStatus.toString());
+            }
+            System.out.println(Arrays.toString(directionsRoutes[0].waypointOrder));
+            System.out.println(directionsRoutes[0].legs[0].steps.length);
+            getPolylines(directionsRoutes[0]);
+            System.out.println(directionsRoutes[0].overviewPolyline.toString());
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private String[] getPolylines(DirectionsRoute directionsRoute) {
+        List<LatLng> toUser = new ArrayList<LatLng>();
+        List<LatLng> toDestination = new ArrayList<LatLng>();
+        for (int i = 0; i < directionsRoute.legs[0].steps.length; i++) {
+            toUser.addAll(directionsRoute.legs[0].steps[i].polyline.decodePath());
+            toDestination.addAll(directionsRoute.legs[1].steps[i].polyline.decodePath());
+        }
+        EncodedPolyline toUserPolyline = new EncodedPolyline(toUser);
+        EncodedPolyline toDestinationPolyline = new EncodedPolyline(toDestination);
+        System.out.println("to user polyline " + toUserPolyline.getEncodedPath());
+        System.out.println("to destination polyline " + toDestinationPolyline.getEncodedPath());
+
+        return new String[] {toUserPolyline.getEncodedPath(), toDestinationPolyline.getEncodedPath()};
     }
 }
