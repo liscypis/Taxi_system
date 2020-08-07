@@ -1,4 +1,4 @@
-package com.lisowski.server.models;
+package com.lisowski.server.models.enums;
 
 public enum ERole {
     ROLE_USER,

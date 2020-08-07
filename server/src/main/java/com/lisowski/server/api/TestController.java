@@ -31,6 +31,11 @@ public class TestController {
     //TODO wywalic
 
 
+    @DeleteMapping("/deleteRide/{id}")
+    public void delete(@PathVariable("id") Long id) {
+        rideService.deleteRide(id);
+    }
+
 
 
     @GetMapping("/user")

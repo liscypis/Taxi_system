@@ -4,6 +4,7 @@ import com.lisowski.server.DTO.request.AddCarRequest;
 import com.lisowski.server.DTO.request.LocationLog;
 import com.lisowski.server.DTO.request.StatusMessage;
 import com.lisowski.server.models.*;
+import com.lisowski.server.models.enums.EStatus;
 import com.lisowski.server.repository.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
-import java.time.Instant;
 
 @Service
 public class DriverService {

@@ -24,7 +24,10 @@ public class RideDetails {
     private Instant timeEnd;
     private String startPoint;
     private String endPoint;
-    private String polyline;
+    @Column(length = 1500)
+    private String userPolyline;
+    @Column(length = 1500)
+    private String driverPolyline;
     private float price;
 
     @OneToOne(mappedBy = "rideDetails")

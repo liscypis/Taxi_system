@@ -1,9 +1,7 @@
 package com.lisowski.server.services;
 
 import com.lisowski.server.DTO.UserDTO;
-import com.lisowski.server.DTO.request.AddCarRequest;
-import com.lisowski.server.models.Car;
-import com.lisowski.server.models.ERole;
+import com.lisowski.server.models.enums.ERole;
 import com.lisowski.server.models.Role;
 import com.lisowski.server.models.User;
 import com.lisowski.server.repository.RoleRepository;

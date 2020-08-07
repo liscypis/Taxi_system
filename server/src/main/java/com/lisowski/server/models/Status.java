@@ -1,5 +1,6 @@
 package com.lisowski.server.models;
 
+import com.lisowski.server.models.enums.EStatus;
 import lombok.Data;
 
 import javax.persistence.*;

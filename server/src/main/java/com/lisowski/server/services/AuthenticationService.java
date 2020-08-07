@@ -5,6 +5,8 @@ import com.lisowski.server.DTO.request.SignupRequest;
 import com.lisowski.server.DTO.response.LoginResponse;
 import com.lisowski.server.Utils.AuthUtils;
 import com.lisowski.server.models.*;
+import com.lisowski.server.models.enums.ERole;
+import com.lisowski.server.models.enums.EStatus;
 import com.lisowski.server.repository.RoleRepository;
 import com.lisowski.server.repository.StatusRepository;
 import com.lisowski.server.repository.UserRepository;
@@ -21,10 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class AuthenticationService {

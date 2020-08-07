@@ -22,7 +22,9 @@ public class Ride {
     @JoinColumn(name = "driver_id", referencedColumnName = "id")
     private User driver;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "details_id", referencedColumnName = "id")
     private RideDetails rideDetails;
+
+    private String rideStatus;
 }

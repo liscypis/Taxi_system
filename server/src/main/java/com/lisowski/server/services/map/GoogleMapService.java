@@ -4,12 +4,16 @@ import com.google.maps.DirectionsApi;
 import com.google.maps.DistanceMatrixApi;
 import com.google.maps.GeoApiContext;
 import com.google.maps.model.*;
+import com.lisowski.server.DTO.response.RideDetailsResponse;
 import com.lisowski.server.Utils.MapsKey;
+import com.lisowski.server.models.Ride;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static com.lisowski.server.Utils.Price.calculatePrice;
 
 @Service
 public class GoogleMapService {
@@ -22,7 +26,7 @@ public class GoogleMapService {
     public Long findClosestDriver(String origin, String[] arrayOfPositions) {
         System.out.println("destination " + origin);
         System.out.println("origins " + Arrays.toString(arrayOfPositions));
-        String[] origins = new String[] {origin};
+        String[] origins = new String[]{origin};
 //        String[] origins  = new String[] {"50.874872,20.626861","50.887521,20.659298"};
 //        String[] destinations = new String[] { "50.888859,20.645138" };
 
@@ -43,8 +47,8 @@ public class GoogleMapService {
     private long findShortestTimeIndex(DistanceMatrixRow[] rows) {
         long min = rows[0].elements[0].duration.inSeconds;
         long minIndex = 0;
-        for(int i = 1; i < rows.length; i++) {
-            if(rows[i].elements[0].duration.inSeconds < min){
+        for (int i = 1; i < rows.length; i++) {
+            if (rows[i].elements[0].duration.inSeconds < min) {
                 min = rows[i].elements[0].duration.inSeconds;
                 minIndex = i;
             }
@@ -52,31 +56,42 @@ public class GoogleMapService {
         return minIndex;
     }
 
-    public void getDirection(String origin, String destination, String waypoint) {
+    public RideDetailsResponse getRideInfo(String origin, String destination, String waypoint) {
+        DirectionsResult directionResult = getDirection(origin, destination, waypoint);
+        if (directionResult == null)
+            return null;
+        else {
+            DirectionsRoute[] route = directionResult.routes;
+            String[] polylines = getPolylines(route[0]);
+            RideDetailsResponse ride = new RideDetailsResponse();
+            Long allDuration = route[0].legs[0].duration.inSeconds + route[0].legs[1].duration.inSeconds;
+            ride.setDriverDistance(route[0].legs[0].distance.inMeters);
+            ride.setUserDistance(route[0].legs[1].distance.inMeters);
+            ride.setDriverDuration(route[0].legs[0].duration.inSeconds);
+            ride.setUserDuration(route[0].legs[1].duration.inSeconds);
+            ride.setDriverPolyline(polylines[0]);
+            ride.setUserPolyline(polylines[1]);
+            ride.setApproxPrice(calculatePrice(allDuration, route[0].legs[1].distance.inMeters));
+
+            return ride;
+        }
+    }
+
+    private DirectionsResult getDirection(String origin, String destination, String waypoint) {
         System.out.println("Driver loc " + origin + " user loc " + waypoint + "user des " + destination);
         try {
-            DirectionsResult result =
-                    DirectionsApi.newRequest(this.context)
-                            .units(Unit.METRIC)
-                            .region("pl")
-                            .origin(origin)
-                            .waypoints(waypoint)
-                            .destination(destination)
-                            .await();
-            GeocodedWaypoint[] geocodedWaypoint = result.geocodedWaypoints;
-            DirectionsRoute[] directionsRoutes = result.routes;
-            System.out.println(geocodedWaypoint.length);
+            return DirectionsApi.newRequest(this.context)
+                    .units(Unit.METRIC)
+                    .region("pl")
+                    .origin(origin)
+                    .waypoints(waypoint)
+                    .destination(destination)
+                    .await();
 
-            for (GeocodedWaypoint waypointStatus : geocodedWaypoint) {
-                System.out.println(waypointStatus.toString());
-            }
-            System.out.println(Arrays.toString(directionsRoutes[0].waypointOrder));
-            System.out.println(directionsRoutes[0].legs[0].steps.length);
-            getPolylines(directionsRoutes[0]);
-            System.out.println(directionsRoutes[0].overviewPolyline.toString());
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+        return null;
     }
 
     private String[] getPolylines(DirectionsRoute directionsRoute) {
@@ -91,6 +106,7 @@ public class GoogleMapService {
         System.out.println("to user polyline " + toUserPolyline.getEncodedPath());
         System.out.println("to destination polyline " + toDestinationPolyline.getEncodedPath());
 
-        return new String[] {toUserPolyline.getEncodedPath(), toDestinationPolyline.getEncodedPath()};
+        return new String[]{toUserPolyline.getEncodedPath(), toDestinationPolyline.getEncodedPath()};
     }
+
 }

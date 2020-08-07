@@ -1,6 +1,6 @@
 package com.lisowski.server.repository;
 
-import com.lisowski.server.models.EStatus;
+import com.lisowski.server.models.enums.EStatus;
 import com.lisowski.server.models.Role;
 import com.lisowski.server.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
