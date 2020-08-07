@@ -5,13 +5,11 @@ import com.lisowski.server.DTO.request.RideRequest;
 import com.lisowski.server.DTO.response.RideDetailsResponse;
 import com.lisowski.server.models.Ride;
 import com.lisowski.server.models.RideDetails;
+import com.lisowski.server.models.Status;
 import com.lisowski.server.models.enums.ERideStatus;
 import com.lisowski.server.models.enums.EStatus;
 import com.lisowski.server.models.User;
-import com.lisowski.server.repository.DriverPosHistRepository;
-import com.lisowski.server.repository.RideDetailsRepository;
-import com.lisowski.server.repository.RideRepository;
-import com.lisowski.server.repository.UserRepository;
+import com.lisowski.server.repository.*;
 import com.lisowski.server.services.map.GoogleMapService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,39 +34,44 @@ public class RideService {
     RideDetailsRepository rideDetailsRepository;
     @Autowired
     RideRepository rideRepository;
+    @Autowired
+    StatusRepository statusRepository;
 
 
-    //TODO add direction
     public ResponseEntity<?> createPreDetailsRide(RideRequest request) {
         Optional<User> optionalUser = userRepository.findById(request.getUserId());
         if(optionalUser.isPresent()) {
             Optional<List<Long>> ids = getIdsOfAvailableDrivers();
             if(ids.isPresent()){
-                createInitialRideDetailsResponse(request, ids.get());
+                return ResponseEntity.ok(createInitialRideDetailsResponse(request, ids.get()));
             } else
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No drivers, try again later");
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found");
         }
-        return ResponseEntity.ok("Status has been set successfully!");
     }
 
-    private void createInitialRideDetailsResponse(RideRequest request, List<Long> ids) {
+    private RideDetailsResponse createInitialRideDetailsResponse(RideRequest request, List<Long> ids) {
         List<DriverPositionHistoryDTO> lastPositions = driverPosHistRepository.findLastPositions(ids);
         Long index = getClosestDriverIndex(request, lastPositions);
         RideDetailsResponse details = googleMapService.getRideInfo(lastPositions.get(index.intValue()).getLocation(), request.getDestination(), request.getOrigin());
+
+        RideDetails savedRideDet = saveAndGetRideDetails(request, lastPositions, index, details);
+        Ride savedRide = saveAndGetRide(request, lastPositions, index, savedRideDet);
+        System.out.println(savedRide.getId());
+
+        User driver = userRepository.findById(lastPositions.get(index.intValue()).getDriverId()).get();
+//        Status status = statusRepository.findByStatus(EStatus.STATUS_INITIAL).get();
+        driver.setStatus(statusRepository.findByStatus(EStatus.STATUS_INITIAL).get());
+        userRepository.save(driver);
+
+        details.setIdRide(savedRide.getId());
         System.out.println(details.toString());
 
+        return details;
+    }
 
-        RideDetails rideDetails = new RideDetails();
-        rideDetails.setStartPoint(lastPositions.get(index.intValue()).getLocation());
-        rideDetails.setEndPoint(request.getDestination());
-        rideDetails.setDriverPolyline(details.getDriverPolyline());
-        rideDetails.setUserPolyline(details.getUserPolyline());
-
-        RideDetails savedRideDet = rideDetailsRepository.saveAndFlush(rideDetails);
-        System.out.println(savedRideDet.getId());
-
+    private Ride saveAndGetRide(RideRequest request, List<DriverPositionHistoryDTO> lastPositions, Long index, RideDetails savedRideDet) {
         Ride ride = new Ride();
         User driver = userRepository.findById(lastPositions.get(index.intValue()).getDriverId()).get();
         User user = userRepository.findById(request.getUserId()).get();
@@ -76,11 +79,16 @@ public class RideService {
         ride.setUser(user);
         ride.setRideStatus(ERideStatus.INITIAL.name());
         ride.setRideDetails(savedRideDet);
-        Ride savedRide = rideRepository.saveAndFlush(ride);
-        System.out.println(savedRide.getId());
+        return rideRepository.saveAndFlush(ride);
+    }
 
-
-
+    private RideDetails saveAndGetRideDetails(RideRequest request, List<DriverPositionHistoryDTO> lastPositions, Long index, RideDetailsResponse details) {
+        RideDetails rideDetails = new RideDetails();
+        rideDetails.setStartPoint(lastPositions.get(index.intValue()).getLocation());
+        rideDetails.setEndPoint(request.getDestination());
+        rideDetails.setDriverPolyline(details.getDriverPolyline());
+        rideDetails.setUserPolyline(details.getUserPolyline());
+        return rideDetailsRepository.saveAndFlush(rideDetails);
     }
 
     private Long getClosestDriverIndex(RideRequest request, List<DriverPositionHistoryDTO> lastPositions) {

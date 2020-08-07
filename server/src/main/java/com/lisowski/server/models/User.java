@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -50,8 +51,11 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "status_id"))
     private Status status;
 
-    @OneToOne(mappedBy = "user")
-    private Ride ride;
+    @OneToMany(mappedBy = "user")
+    private Set<Ride> ride;
+
+    @OneToMany(mappedBy = "driver")
+    private Set<Ride> rideDriver;
 
 
 //    @JsonBackReference

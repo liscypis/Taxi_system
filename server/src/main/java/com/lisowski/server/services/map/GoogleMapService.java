@@ -97,10 +97,12 @@ public class GoogleMapService {
     private String[] getPolylines(DirectionsRoute directionsRoute) {
         List<LatLng> toUser = new ArrayList<LatLng>();
         List<LatLng> toDestination = new ArrayList<LatLng>();
-        for (int i = 0; i < directionsRoute.legs[0].steps.length; i++) {
+        for (int i = 0; i < directionsRoute.legs[0].steps.length; i++)
             toUser.addAll(directionsRoute.legs[0].steps[i].polyline.decodePath());
+
+        for (int i = 0; i < directionsRoute.legs[1].steps.length; i++)
             toDestination.addAll(directionsRoute.legs[1].steps[i].polyline.decodePath());
-        }
+
         EncodedPolyline toUserPolyline = new EncodedPolyline(toUser);
         EncodedPolyline toDestinationPolyline = new EncodedPolyline(toDestination);
         System.out.println("to user polyline " + toUserPolyline.getEncodedPath());

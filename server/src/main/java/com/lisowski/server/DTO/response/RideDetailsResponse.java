@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class RideDetailsResponse {
+    private Long idRide;
     private Long userDistance;
     private Long driverDistance;
     private Long userDuration;
