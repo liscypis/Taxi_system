@@ -29,8 +29,8 @@ public class RideController {
     }
 
     @PutMapping("/setRideStatus")
-    public ResponseEntity<?> setRideStatusByDriver(@Valid @RequestBody StatusMessage request) {
-        return rideService.setRideStatusByDriver(request);
+    public ResponseEntity<?> setRideStatus(@Valid @RequestBody StatusMessage request) {
+        return rideService.setRideStatus(request);
     }
 
     @GetMapping("/getRideStatus/{id}")
@@ -43,5 +43,15 @@ public class RideController {
         return rideService.checkForNewRide(id);
     }
 
+
+    @PostMapping("/confirmDriverArrival")
+    public ResponseEntity<?> confirmDriverArrival(@Valid @RequestBody ConfirmRide request) {
+        return rideService.confirmDriverArrival(request);
+    }
+
+    @GetMapping("/getPriceForRide/{id_ride}")
+    public ResponseEntity<?> getPriceForRide(@PathVariable("id_ride") Long id) {
+        return rideService.getPriceForRide(id);
+    }
 
 }

@@ -16,10 +16,7 @@ public class RideDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @UpdateTimestamp
-    @Column(nullable = false, columnDefinition = "TIMESTAMP")
     private Instant timeStart;
-
     private Instant timeArriveToUser;
     private Instant timeEnd;
     private String startPoint;
