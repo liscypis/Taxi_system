@@ -1,6 +1,7 @@
 package com.lisowski.server.services;
 
 import com.lisowski.server.DTO.DriverPositionHistoryDTO;
+import com.lisowski.server.DTO.request.ConfirmRide;
 import com.lisowski.server.DTO.request.RideRequest;
 import com.lisowski.server.DTO.response.RideDetailsResponse;
 import com.lisowski.server.models.Ride;
@@ -51,6 +52,26 @@ public class RideService {
         }
     }
 
+    public ResponseEntity<?> confirmRide(ConfirmRide request) {
+        Optional<Ride> optRide = rideRepository.findById(request.getIdRide());
+        if(optRide.isPresent()) {
+            Ride ride = optRide.get();
+            if(request.getConfirm()){
+                ride.setRideStatus(ERideStatus.ON_THE_WAY.name());
+                rideRepository.save(ride);
+                setDriverStatus(ride.getDriver().getId(), EStatus.STATUS_BUSY);
+                return ResponseEntity.ok("Taxi ordered");
+            } else {
+                setDriverStatus(ride.getDriver().getId(), EStatus.STATUS_AVAILABLE);
+                rideRepository.delete(ride);
+
+                return ResponseEntity.ok("Taxi order canceled");
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ride not found");
+        }
+    }
+
     private RideDetailsResponse createInitialRideDetailsResponse(RideRequest request, List<Long> ids) {
         List<DriverPositionHistoryDTO> lastPositions = driverPosHistRepository.findLastPositions(ids);
         Long index = getClosestDriverIndex(request, lastPositions);
@@ -60,15 +81,19 @@ public class RideService {
         Ride savedRide = saveAndGetRide(request, lastPositions, index, savedRideDet);
         System.out.println(savedRide.getId());
 
-        User driver = userRepository.findById(lastPositions.get(index.intValue()).getDriverId()).get();
-//        Status status = statusRepository.findByStatus(EStatus.STATUS_INITIAL).get();
-        driver.setStatus(statusRepository.findByStatus(EStatus.STATUS_INITIAL).get());
-        userRepository.save(driver);
+        setDriverStatus(lastPositions.get(index.intValue()).getDriverId(), EStatus.STATUS_INITIAL);
 
         details.setIdRide(savedRide.getId());
+        details.setIdDriver(savedRide.getDriver().getId());
         System.out.println(details.toString());
 
         return details;
+    }
+
+    private void setDriverStatus(Long driverID, EStatus status) {
+        User driver = userRepository.findById(driverID).get();
+        driver.setStatus(statusRepository.findByStatus(status).get());
+        userRepository.save(driver);
     }
 
     private Ride saveAndGetRide(RideRequest request, List<DriverPositionHistoryDTO> lastPositions, Long index, RideDetails savedRideDet) {

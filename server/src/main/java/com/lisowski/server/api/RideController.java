@@ -1,5 +1,6 @@
 package com.lisowski.server.api;
 
+import com.lisowski.server.DTO.request.ConfirmRide;
 import com.lisowski.server.DTO.request.RideRequest;
 import com.lisowski.server.services.RideService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,4 +22,9 @@ public class RideController {
     public ResponseEntity<?> initialOrderRide(@Valid @RequestBody RideRequest request) {
         return rideService.createPreDetailsRide(request);
     }
+    @PostMapping("/confirmRide")
+    public ResponseEntity<?> initialOrderRide(@Valid @RequestBody ConfirmRide request) {
+        return rideService.confirmRide(request);
+    }
+
 }
