@@ -3,10 +3,11 @@ package com.lisowski.server.services;
 import com.lisowski.server.DTO.DriverPositionHistoryDTO;
 import com.lisowski.server.DTO.request.ConfirmRide;
 import com.lisowski.server.DTO.request.RideRequest;
+import com.lisowski.server.DTO.request.StatusMessage;
+import com.lisowski.server.DTO.response.DriverInfoResponse;
 import com.lisowski.server.DTO.response.RideDetailsResponse;
 import com.lisowski.server.models.Ride;
 import com.lisowski.server.models.RideDetails;
-import com.lisowski.server.models.Status;
 import com.lisowski.server.models.enums.ERideStatus;
 import com.lisowski.server.models.enums.EStatus;
 import com.lisowski.server.models.User;
@@ -41,9 +42,9 @@ public class RideService {
 
     public ResponseEntity<?> createPreDetailsRide(RideRequest request) {
         Optional<User> optionalUser = userRepository.findById(request.getUserId());
-        if(optionalUser.isPresent()) {
+        if (optionalUser.isPresent()) {
             Optional<List<Long>> ids = getIdsOfAvailableDrivers();
-            if(ids.isPresent()){
+            if (ids.isPresent()) {
                 return ResponseEntity.ok(createInitialRideDetailsResponse(request, ids.get()));
             } else
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No drivers, try again later");
@@ -54,13 +55,14 @@ public class RideService {
 
     public ResponseEntity<?> confirmRide(ConfirmRide request) {
         Optional<Ride> optRide = rideRepository.findById(request.getIdRide());
-        if(optRide.isPresent()) {
+        if (optRide.isPresent()) {
             Ride ride = optRide.get();
-            if(request.getConfirm()){
-                ride.setRideStatus(ERideStatus.ON_THE_WAY.name());
+            if (request.getConfirm()) {
+                ride.setRideStatus(ERideStatus.ON_THE_WAY_TO_CLIENT.name());
                 rideRepository.save(ride);
                 setDriverStatus(ride.getDriver().getId(), EStatus.STATUS_BUSY);
-                return ResponseEntity.ok("Taxi ordered");
+
+                return ResponseEntity.ok(getDriverInformation(ride));
             } else {
                 setDriverStatus(ride.getDriver().getId(), EStatus.STATUS_AVAILABLE);
                 rideRepository.delete(ride);
@@ -70,6 +72,11 @@ public class RideService {
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ride not found");
         }
+    }
+
+    private DriverInfoResponse getDriverInformation(Ride ride) {
+        User driver = userRepository.findById(ride.getDriver().getId()).get();
+        return new DriverInfoResponse(driver);
     }
 
     private RideDetailsResponse createInitialRideDetailsResponse(RideRequest request, List<Long> ids) {
@@ -119,14 +126,46 @@ public class RideService {
     private Long getClosestDriverIndex(RideRequest request, List<DriverPositionHistoryDTO> lastPositions) {
         List<String> driversPosition = lastPositions.stream().map(DriverPositionHistoryDTO::getLocation).collect(Collectors.toList());
         String[] arrayOfPositions = driversPosition.toArray(String[]::new);
-        return googleMapService.findClosestDriver(request.getOrigin(),arrayOfPositions);
+        return googleMapService.findClosestDriver(request.getOrigin(), arrayOfPositions);
     }
 
     private Optional<List<Long>> getIdsOfAvailableDrivers() {
         return userRepository.findIdsByStatus(EStatus.STATUS_AVAILABLE);
     }
 
-    public void deleteRide(Long id){
+    public void deleteRide(Long id) {
         rideRepository.deleteById(id);
+    }
+
+    public ResponseEntity<?> setRideStatusByDriver(StatusMessage request) {
+        Optional<Ride> optRide = rideRepository.findById(request.getId());
+        String status = checkStatusName(request);
+        if (optRide.isPresent() && !status.equals("")) {
+            Ride ride = optRide.get();
+            ride.setRideStatus(status);
+            rideRepository.save(ride);
+
+            return ResponseEntity.ok("Status set successfully");
+        } else
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ride or status not found");
+    }
+
+    private String checkStatusName(StatusMessage request) {
+        String status = "";
+        if (request.getStatus().equals("wait_to_user"))
+            status = ERideStatus.WAITING_FOR_USER.name();
+        if (request.getStatus().equals("way_to_destination"))
+            status = ERideStatus.ON_THE_WAY_TO_DEST.name();
+        if (request.getStatus().equals("ending"))
+            status = ERideStatus.ENDING.name();
+        if (request.getStatus().equals("complete"))
+            status = ERideStatus.COMPLETE.name();
+
+        return status;
+    }
+
+    public ResponseEntity<?> getRideStatus(Long id) {
+        Ride ride = rideRepository.findById(id).orElseThrow(() ->new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ride or status not found"));
+        return ResponseEntity.ok(ride.getRideStatus());
     }
 }

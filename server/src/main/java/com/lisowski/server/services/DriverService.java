@@ -1,5 +1,6 @@
 package com.lisowski.server.services;
 
+import com.lisowski.server.DTO.DriverPositionHistoryDTO;
 import com.lisowski.server.DTO.request.AddCarRequest;
 import com.lisowski.server.DTO.request.LocationLog;
 import com.lisowski.server.DTO.request.StatusMessage;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -115,4 +117,9 @@ public class DriverService {
             fStatus = statusRepository.findByStatus(EStatus.STATUS_BUSY);
         return fStatus;
     }
+
+    public String getDriverPosition(Long driverId) {
+        return  driverPosHistRepository.findLastPositions(List.of(driverId)).get(0).getLocation();
+    }
+
 }

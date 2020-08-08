@@ -1,5 +1,6 @@
 package com.lisowski.server.api;
 
+import com.lisowski.server.DTO.UserDTO;
 import com.lisowski.server.DTO.request.AddCarRequest;
 import com.lisowski.server.DTO.request.LocationLog;
 import com.lisowski.server.DTO.request.StatusMessage;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -43,5 +45,10 @@ public class DriverController {
     public ResponseEntity<?> setStatus(@Valid @RequestBody StatusMessage message) {
         return driverService.setDriverStatus(message);
     }
+    @GetMapping("/getDriverLocation/{driverID}")
+    public String authenticateUser(@PathVariable("driverID") Long id) {
+        return driverService.getDriverPosition(id);
+    }
+
 
 }
