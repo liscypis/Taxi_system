@@ -23,11 +23,15 @@ public class RideDetails {
     private Instant timeArriveToUser;
     private Instant timeEnd;
     private String startPoint;
+    private String waypoint;
     private String endPoint;
     @Column(length = 1500)
     private String userPolyline;
     @Column(length = 1500)
     private String driverPolyline;
+    private Long userDistance;
+    private Long driverDistance;
+
     private float price;
 
     @OneToOne(mappedBy = "rideDetails")

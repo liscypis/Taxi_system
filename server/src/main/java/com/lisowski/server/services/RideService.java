@@ -92,6 +92,8 @@ public class RideService {
 
         details.setIdRide(savedRide.getId());
         details.setIdDriver(savedRide.getDriver().getId());
+        details.setUserDestination(savedRideDet.getEndPoint());
+        details.setUserLocation(savedRideDet.getWaypoint());
         System.out.println(details.toString());
 
         return details;
@@ -117,9 +119,12 @@ public class RideService {
     private RideDetails saveAndGetRideDetails(RideRequest request, List<DriverPositionHistoryDTO> lastPositions, Long index, RideDetailsResponse details) {
         RideDetails rideDetails = new RideDetails();
         rideDetails.setStartPoint(lastPositions.get(index.intValue()).getLocation());
+        rideDetails.setWaypoint(request.getOrigin());
         rideDetails.setEndPoint(request.getDestination());
         rideDetails.setDriverPolyline(details.getDriverPolyline());
         rideDetails.setUserPolyline(details.getUserPolyline());
+        rideDetails.setUserDistance(details.getUserDistance());
+        rideDetails.setDriverDistance(details.getDriverDistance());
         return rideDetailsRepository.saveAndFlush(rideDetails);
     }
 
@@ -167,5 +172,16 @@ public class RideService {
     public ResponseEntity<?> getRideStatus(Long id) {
         Ride ride = rideRepository.findById(id).orElseThrow(() ->new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ride or status not found"));
         return ResponseEntity.ok(ride.getRideStatus());
+    }
+
+    public ResponseEntity<?> checkForNewRide(Long id) {
+        Optional<Ride> optRide = rideRepository.findByDriver_IdAndRideStatus(id, ERideStatus.ON_THE_WAY_TO_CLIENT.name());
+        if(optRide.isPresent()){
+            Ride ride = optRide.get();
+            return ResponseEntity.ok(new RideDetailsResponse(ride));
+        }
+        else {
+            return ResponseEntity.ok(new RideDetailsResponse());
+        }
     }
 }

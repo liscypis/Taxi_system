@@ -1,11 +1,11 @@
 package com.lisowski.server.Utils;
 
 import com.lisowski.server.security.UserDetailsImpl;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+import java.security.SignatureException;
 import java.util.Date;
 
 @Component
@@ -29,8 +29,8 @@ public class AuthUtils {
         try{
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);
             return true;
-        } catch (Exception e){
-            System.out.println("Validation exception " + e.getMessage());
+        } catch (UnsupportedJwtException | MalformedJwtException | ExpiredJwtException | IllegalArgumentException e) {
+            System.out.println(e.getMessage());
         }
         return false;
     }

@@ -38,10 +38,10 @@ public class RideController {
         return rideService.getRideStatus(id);
     }
 
-//    @GetMapping("/getRideStatus/{id}")
-//    public ResponseEntity<?> getRideStatus(@PathVariable("id") Long id) {
-//        return rideService.getRideStatus(id);
-//    }
+    @GetMapping("/checkForNewRide/{id}")
+    public ResponseEntity<?> checkForNewRide(@PathVariable("id") Long id) {
+        return rideService.checkForNewRide(id);
+    }
 
 
 }

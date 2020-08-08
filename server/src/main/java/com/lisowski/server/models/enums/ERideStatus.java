@@ -6,5 +6,6 @@ public enum  ERideStatus {
     WAITING_FOR_USER,
     ON_THE_WAY_TO_DEST,
     ENDING,
-    COMPLETE
+    COMPLETE,
+    NO_APP
 }
