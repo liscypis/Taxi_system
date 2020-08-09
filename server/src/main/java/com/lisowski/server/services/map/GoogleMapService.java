@@ -3,6 +3,7 @@ package com.lisowski.server.services.map;
 import com.google.maps.DirectionsApi;
 import com.google.maps.DistanceMatrixApi;
 import com.google.maps.GeoApiContext;
+import com.google.maps.GeocodingApi;
 import com.google.maps.model.*;
 import com.lisowski.server.DTO.response.RideDetailsResponse;
 import com.lisowski.server.Utils.MapsKey;
@@ -28,12 +29,11 @@ public class GoogleMapService {
         System.out.println("origins " + Arrays.toString(arrayOfPositions));
         String[] origins = new String[]{origin};
 //        String[] origins  = new String[] {"50.874872,20.626861","50.887521,20.659298"};
-//        String[] destinations = new String[] { "50.888859,20.645138" };
 
         try {
             DistanceMatrix matrix =
                     DistanceMatrixApi.getDistanceMatrix(this.context, arrayOfPositions, origins).await();
-            System.out.println(matrix.toString());
+//            System.out.println(matrix.toString());
             DistanceMatrixRow[] rows = matrix.rows;
 
             return findShortestTimeIndex(rows);
@@ -47,7 +47,9 @@ public class GoogleMapService {
     private long findShortestTimeIndex(DistanceMatrixRow[] rows) {
         long min = rows[0].elements[0].duration.inSeconds;
         long minIndex = 0;
+        System.out.println("index " + 0 + " duration [s] " + rows[0].elements[0].duration.inSeconds);
         for (int i = 1; i < rows.length; i++) {
+            System.out.println("index " + i + " duration [s] " + rows[i].elements[0].duration.inSeconds);
             if (rows[i].elements[0].duration.inSeconds < min) {
                 min = rows[i].elements[0].duration.inSeconds;
                 minIndex = i;
@@ -58,9 +60,23 @@ public class GoogleMapService {
 
     public RideDetailsResponse getRideInfo(String origin, String destination, String waypoint) {
         DirectionsResult directionResult = getDirection(origin, destination, waypoint);
-        if (directionResult == null)
+        GeocodingResult[] geocodingUserLoc = getGeocodedUserAndDestination(waypoint);
+        GeocodingResult[] geocodingUserDest = getGeocodedUserAndDestination(destination);
+        if (directionResult == null || geocodingUserLoc == null || geocodingUserDest == null)
             return null;
         else {
+
+            String userLoc = "";
+            String userDest = "";
+            for (int i = 0; i < geocodingUserLoc.length; i++) {
+                System.out.println("Geocoded u loc " + geocodingUserLoc[i].geometry.location.toString());
+                userLoc = geocodingUserLoc[i].geometry.location.toString();
+            }
+            for (int i = 0; i < geocodingUserDest.length; i++) {
+                System.out.println("Geocoded u dest " + geocodingUserDest[i].geometry.location.toString());
+                userDest = geocodingUserDest[i].geometry.location.toString();
+            }
+
             DirectionsRoute[] route = directionResult.routes;
             String[] polylines = getPolylines(route[0]);
             RideDetailsResponse ride = new RideDetailsResponse();
@@ -71,10 +87,21 @@ public class GoogleMapService {
             ride.setUserDuration(route[0].legs[1].duration.inSeconds);
             ride.setDriverPolyline(polylines[0]);
             ride.setUserPolyline(polylines[1]);
+            ride.setUserLocation(userLoc);
+            ride.setUserDestination(userDest);
             ride.setApproxPrice(calculatePrice(allDuration, route[0].legs[1].distance.inMeters));
 
             return ride;
         }
+    }
+
+    private GeocodingResult[] getGeocodedUserAndDestination(String location)  {
+        try{
+            return GeocodingApi.newRequest(this.context).address(location).await();
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+        return null;
     }
 
     private DirectionsResult getDirection(String origin, String destination, String waypoint) {

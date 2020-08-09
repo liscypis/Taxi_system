@@ -89,16 +89,14 @@ public class RideService {
         Long index = getClosestDriverIndex(request, lastPositions);
         RideDetailsResponse details = googleMapService.getRideInfo(lastPositions.get(index.intValue()).getLocation(), request.getDestination(), request.getOrigin());
 
-        RideDetails savedRideDet = saveAndGetRideDetails(request, lastPositions, index, details);
+        RideDetails savedRideDet = saveAndGetRideDetails(lastPositions, index, details);
         Ride savedRide = saveAndGetRide(request, lastPositions, index, savedRideDet);
-        System.out.println(savedRide.getId());
+//        System.out.println(savedRide.getId());
 
         setDriverStatus(lastPositions.get(index.intValue()).getDriverId(), EStatus.STATUS_INITIAL);
 
         details.setIdRide(savedRide.getId());
         details.setIdDriver(savedRide.getDriver().getId());
-        details.setUserDestination(savedRideDet.getEndPoint());
-        details.setUserLocation(savedRideDet.getWaypoint());
         System.out.println(details.toString());
 
         return details;
@@ -121,15 +119,16 @@ public class RideService {
         return rideRepository.saveAndFlush(ride);
     }
 
-    private RideDetails saveAndGetRideDetails(RideRequest request, List<DriverPositionHistoryDTO> lastPositions, Long index, RideDetailsResponse details) {
+    private RideDetails saveAndGetRideDetails(List<DriverPositionHistoryDTO> lastPositions, Long index, RideDetailsResponse details) {
         RideDetails rideDetails = new RideDetails();
         rideDetails.setStartPoint(lastPositions.get(index.intValue()).getLocation());
-        rideDetails.setWaypoint(request.getOrigin());
-        rideDetails.setEndPoint(request.getDestination());
+        rideDetails.setWaypoint(details.getUserLocation());
+        rideDetails.setEndPoint(details.getUserDestination());
         rideDetails.setDriverPolyline(details.getDriverPolyline());
         rideDetails.setUserPolyline(details.getUserPolyline());
         rideDetails.setUserDistance(details.getUserDistance());
         rideDetails.setDriverDistance(details.getDriverDistance());
+
         return rideDetailsRepository.saveAndFlush(rideDetails);
     }
 
@@ -154,6 +153,10 @@ public class RideService {
             Ride ride = optRide.get();
             ride.setRideStatus(status);
             rideRepository.save(ride);
+
+            if(status.equals("COMPLETE")){
+                setDriverStatus(ride.getDriver().getId(), EStatus.STATUS_AVAILABLE);
+            }
 
             return ResponseEntity.ok("Status set successfully");
         } else
