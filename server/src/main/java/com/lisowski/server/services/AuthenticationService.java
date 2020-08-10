@@ -114,7 +114,7 @@ public class AuthenticationService {
         }
     }
 
-    private Set<Role> checkRoles(Set<String> roles) {
+    public Set<Role> checkRoles(Set<String> roles) {
         Set<Role> newRoles = new HashSet<>();
         if (roles == null) {
             Role uRole = roleRepository.findByRole(ERole.ROLE_USER).orElseThrow(() ->

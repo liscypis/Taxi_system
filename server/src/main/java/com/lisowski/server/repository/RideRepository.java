@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface RideRepository extends JpaRepository<Ride, Long> {
-    Optional<Ride> findByDriver_IdAndRideStatus(Long idDriver, String Status);
+    Optional<Ride> findByDriver_IdAndRideStatusOrRideStatus(Long idDriver, String onTheWay, String noApp);
 }

@@ -7,4 +7,5 @@ public class RideRequest {
     private Long userId;
     private String origin;
     private String destination;
+    private String phoneNumber;
 }

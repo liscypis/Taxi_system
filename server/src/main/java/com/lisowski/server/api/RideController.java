@@ -23,6 +23,11 @@ public class RideController {
     public ResponseEntity<?> initialOrderRide(@Valid @RequestBody RideRequest request) {
         return rideService.createPreDetailsRide(request);
     }
+
+    @PostMapping("/initialOrderRideByDispatcher")
+    public ResponseEntity<?> initialOrderRideByDispatcher(@Valid @RequestBody RideRequest request) {
+        return rideService.createPreDetailsRideByDispatcher(request);
+    }
     @PostMapping("/confirmRide")
     public ResponseEntity<?> confirmRide(@Valid @RequestBody ConfirmRide request) {
         return rideService.confirmRide(request);

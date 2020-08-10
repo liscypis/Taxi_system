@@ -27,4 +27,5 @@ public class SignupRequest {
     private String phoneNum;
 
     private Set<String> roles;
+
 }

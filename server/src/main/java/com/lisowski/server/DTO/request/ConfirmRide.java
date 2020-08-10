@@ -6,4 +6,5 @@ import lombok.Data;
 public class ConfirmRide {
     private Long idRide;
     private Boolean confirm;
+    private Boolean noApp;
 }

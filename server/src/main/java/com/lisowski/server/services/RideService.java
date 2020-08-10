@@ -23,6 +23,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.lisowski.server.Utils.Price.calculatePrice;
@@ -42,6 +43,8 @@ public class RideService {
     RideRepository rideRepository;
     @Autowired
     StatusRepository statusRepository;
+    @Autowired
+    AuthenticationService authenticationService;
 
 
     public ResponseEntity<?> createPreDetailsRide(RideRequest request) {
@@ -57,12 +60,40 @@ public class RideService {
         }
     }
 
+    public ResponseEntity<?> createPreDetailsRideByDispatcher(RideRequest request) {
+        Optional<User> optionalUser = userRepository.findByPhoneNum(request.getPhoneNumber());
+        Optional<List<Long>> ids = getIdsOfAvailableDrivers();
+        if (ids.isPresent()) {
+            if (optionalUser.isPresent()) {
+                request.setUserId(optionalUser.get().getId());
+            } else {
+                User user = new User();
+                user.setUserName("");
+                user.setPassword("");
+                user.setName("");
+                user.setSurname("");
+                user.setEmail("");
+                user.setPhoneNum(request.getPhoneNumber());
+                user.setRoles(authenticationService.checkRoles(Set.of("user")));
+                User savedUser = userRepository.saveAndFlush(user);
+                request.setUserId(savedUser.getId());
+            }
+            return ResponseEntity.ok(createInitialRideDetailsResponse(request, ids.get()));
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No drivers, try again later");
+        }
+    }
+
     public ResponseEntity<?> confirmRide(ConfirmRide request) {
         Optional<Ride> optRide = rideRepository.findById(request.getIdRide());
         if (optRide.isPresent()) {
             Ride ride = optRide.get();
             if (request.getConfirm()) {
-                ride.setRideStatus(ERideStatus.ON_THE_WAY_TO_CLIENT.name());
+                if(request.getNoApp())
+                    ride.setRideStatus(ERideStatus.NO_APP.name());
+                else
+                    ride.setRideStatus(ERideStatus.ON_THE_WAY_TO_CLIENT.name());
+
                 ride.getRideDetails().setTimeStart(Instant.now());
                 rideRepository.save(ride);
                 setDriverStatus(ride.getDriver().getId(), EStatus.STATUS_BUSY);
@@ -97,6 +128,8 @@ public class RideService {
 
         details.setIdRide(savedRide.getId());
         details.setIdDriver(savedRide.getDriver().getId());
+        details.setUserPhone(savedRide.getUser().getPhoneNum());
+        details.setDriverPhone(savedRide.getDriver().getPhoneNum());
         System.out.println(details.toString());
 
         return details;
@@ -154,7 +187,7 @@ public class RideService {
             ride.setRideStatus(status);
             rideRepository.save(ride);
 
-            if(status.equals("COMPLETE")){
+            if (status.equals("COMPLETE")) {
                 setDriverStatus(ride.getDriver().getId(), EStatus.STATUS_AVAILABLE);
             }
 
@@ -183,7 +216,7 @@ public class RideService {
     }
 
     public ResponseEntity<?> checkForNewRide(Long id) {
-        Optional<Ride> optRide = rideRepository.findByDriver_IdAndRideStatus(id, ERideStatus.ON_THE_WAY_TO_CLIENT.name());
+        Optional<Ride> optRide = rideRepository.findByDriver_IdAndRideStatusOrRideStatus(id, ERideStatus.ON_THE_WAY_TO_CLIENT.name(),ERideStatus.NO_APP.name());
         if (optRide.isPresent()) {
             Ride ride = optRide.get();
             return ResponseEntity.ok(new RideDetailsResponse(ride));

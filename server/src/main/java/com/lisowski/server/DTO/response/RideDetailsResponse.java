@@ -15,6 +15,8 @@ public class RideDetailsResponse {
     private String driverPolyline;
     private String userLocation;
     private String userDestination;
+    private String userPhone;
+    private String driverPhone;
     private float approxPrice;
 
     public RideDetailsResponse(Ride ride) {
@@ -26,6 +28,8 @@ public class RideDetailsResponse {
         this.userDestination = ride.getRideDetails().getEndPoint();
         this.userDistance = ride.getRideDetails().getUserDistance();
         this.driverDistance = ride.getRideDetails().getDriverDistance();
+        this.driverPhone = ride.getDriver().getPhoneNum();
+        this.userPhone = ride.getUser().getPhoneNum();
     }
     public RideDetailsResponse() {
 
