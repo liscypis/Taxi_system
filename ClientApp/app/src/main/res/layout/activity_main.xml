@@ -22,6 +22,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
+        android:fontFamily="@font/pt_sans_bold"
         android:text="Nie masz konta? \n Kliknij aby się zarejestrować"
         android:textAlignment="center"
         android:textSize="18sp"
@@ -35,7 +36,9 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="8dp"
+        app:helperText=" "
+        app:helperTextEnabled="true"
         app:layout_constraintBottom_toTopOf="@+id/passwordInput"
         app:layout_constraintEnd_toEndOf="@+id/noAccountTV"
         app:layout_constraintStart_toStartOf="@+id/noAccountTV">
@@ -43,6 +46,7 @@
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:fontFamily="@font/pt_sans_bold"
             android:hint="Login" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -51,8 +55,10 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="8dp"
         app:endIconMode="password_toggle"
+        app:helperText=" "
+        app:helperTextEnabled="true"
         app:layout_constraintBottom_toTopOf="@+id/loginBnt"
         app:layout_constraintEnd_toEndOf="@+id/noAccountTV"
         app:layout_constraintStart_toStartOf="@+id/noAccountTV">
@@ -60,18 +66,22 @@
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:fontFamily="@font/pt_sans_bold"
             android:hint="Hasło"
             android:inputType="textPassword" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <ProgressBar
-        android:id="@+id/loginPB"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+        android:id="@+id/errorTV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:fontFamily="@font/pt_sans_bold"
+        android:textColor="#E80606"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/loginInput"
+        app:layout_constraintEnd_toEndOf="@+id/loginInput"
+        app:layout_constraintStart_toStartOf="@+id/loginInput" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
