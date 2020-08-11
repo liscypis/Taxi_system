@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ClientApp</string>
+    <string name="login">Zaloguj</string>
 </resources>
