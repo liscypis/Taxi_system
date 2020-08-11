@@ -1,6 +1,7 @@
 package com.lisowski.server.services;
 
 import com.lisowski.server.DTO.DriverPositionHistoryDTO;
+import com.lisowski.server.DTO.RideDTO;
 import com.lisowski.server.DTO.request.ConfirmRide;
 import com.lisowski.server.DTO.request.RideRequest;
 import com.lisowski.server.DTO.request.StatusMessage;
@@ -242,5 +243,15 @@ public class RideService {
         rideRepository.save(ride);
 
         return ResponseEntity.ok(ride.getRideDetails().getPrice());
+    }
+
+    public List<RideDTO> getDriverRides(Long driverId) {
+        Optional<List<Ride>> listOfRides = rideRepository.findByDriver_IdAndRideStatus(driverId, ERideStatus.COMPLETE.name());
+        return listOfRides.map(rides -> rides.stream().map(RideDTO::new).collect(Collectors.toList())).orElse(null);
+    }
+
+    public List<RideDTO> getUserRides(Long userId) {
+        Optional<List<Ride>> listOfRides = rideRepository.findByUser_IdAndRideStatus(userId, ERideStatus.COMPLETE.name());
+        return listOfRides.map(rides -> rides.stream().map(RideDTO::new).collect(Collectors.toList())).orElse(null);
     }
 }
