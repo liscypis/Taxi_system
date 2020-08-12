@@ -6,6 +6,7 @@ import com.lisowski.server.DTO.request.ConfirmRide;
 import com.lisowski.server.DTO.request.RideRequest;
 import com.lisowski.server.DTO.request.StatusMessage;
 import com.lisowski.server.DTO.response.DriverInfoResponse;
+import com.lisowski.server.DTO.response.Message;
 import com.lisowski.server.DTO.response.RideDetailsResponse;
 import com.lisowski.server.models.Ride;
 import com.lisowski.server.models.RideDetails;
@@ -104,7 +105,7 @@ public class RideService {
                 setDriverStatus(ride.getDriver().getId(), EStatus.STATUS_AVAILABLE);
                 rideRepository.delete(ride);
 
-                return ResponseEntity.ok("Taxi order canceled");
+                return ResponseEntity.ok(new Message("Taxi order canceled"));
             }
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ride not found");
@@ -192,7 +193,7 @@ public class RideService {
                 setDriverStatus(ride.getDriver().getId(), EStatus.STATUS_AVAILABLE);
             }
 
-            return ResponseEntity.ok("Status set successfully");
+            return ResponseEntity.ok(new Message("Status set successfully"));
         } else
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ride or status not found");
     }
@@ -232,7 +233,7 @@ public class RideService {
         ride.getRideDetails().setTimeArriveToUser(Instant.now());
         rideRepository.save(ride);
 
-        return ResponseEntity.ok("Status successfully set");
+        return ResponseEntity.ok(new Message("Status successfully set"));
     }
 
     public ResponseEntity<?> getPriceForRide(Long id) {

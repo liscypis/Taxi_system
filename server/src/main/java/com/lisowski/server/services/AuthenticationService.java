@@ -3,6 +3,7 @@ package com.lisowski.server.services;
 import com.lisowski.server.DTO.request.LoginParam;
 import com.lisowski.server.DTO.request.SignupRequest;
 import com.lisowski.server.DTO.response.LoginResponse;
+import com.lisowski.server.DTO.response.Message;
 import com.lisowski.server.Utils.AuthUtils;
 import com.lisowski.server.models.*;
 import com.lisowski.server.models.enums.ERole;
@@ -77,7 +78,7 @@ public class AuthenticationService {
                 modifiedUser.setPhoneNum(signupRequest.getPhoneNum());
                 userRepository.save(modifiedUser);
 
-                return ResponseEntity.ok("User created successfully!");
+                return ResponseEntity.ok(new Message("User created successfully!"));
             }
         } else {
             checkEmailAndUserName(signupRequest);
@@ -102,7 +103,7 @@ public class AuthenticationService {
         }
 
 
-        return ResponseEntity.ok("User created successfully!");
+        return ResponseEntity.ok(new Message("User created successfully!"));
     }
 
     private void checkEmailAndUserName(SignupRequest signupRequest) {

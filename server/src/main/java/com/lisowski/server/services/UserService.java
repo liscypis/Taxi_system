@@ -1,6 +1,7 @@
 package com.lisowski.server.services;
 
 import com.lisowski.server.DTO.UserDTO;
+import com.lisowski.server.DTO.response.Message;
 import com.lisowski.server.models.enums.ERole;
 import com.lisowski.server.models.Role;
 import com.lisowski.server.models.User;
@@ -57,7 +58,7 @@ public class UserService {
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found");
         }
-        return ResponseEntity.ok("User deleted successfully!");
+        return ResponseEntity.ok(new Message("User deleted successfully!"));
     }
 
 

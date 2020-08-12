@@ -4,6 +4,7 @@ import com.lisowski.server.DTO.DriverPositionHistoryDTO;
 import com.lisowski.server.DTO.request.AddCarRequest;
 import com.lisowski.server.DTO.request.LocationLog;
 import com.lisowski.server.DTO.request.StatusMessage;
+import com.lisowski.server.DTO.response.Message;
 import com.lisowski.server.models.*;
 import com.lisowski.server.models.enums.EStatus;
 import com.lisowski.server.repository.*;
@@ -49,7 +50,7 @@ public class DriverService {
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Driver not found");
         }
-        return ResponseEntity.ok("Car added successfully!");
+        return ResponseEntity.ok(new Message("Car added successfully!"));
     }
 
     public ResponseEntity<?> updateCar(Car request) {
@@ -59,7 +60,7 @@ public class DriverService {
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "car not found");
         }
-        return ResponseEntity.ok("Car edited successfully!");
+        return ResponseEntity.ok(new Message("Car edited successfully!"));
     }
 
     public ResponseEntity<?> deleteCar(Long id) {
@@ -75,7 +76,7 @@ public class DriverService {
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "car not found");
         }
-        return ResponseEntity.ok("Car deleted successfully!");
+        return ResponseEntity.ok(new Message("Car deleted successfully!"));
     }
 
     public ResponseEntity<?> addLocalization(LocationLog locationLog) {
@@ -88,7 +89,7 @@ public class DriverService {
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Driver not found");
         }
-        return ResponseEntity.ok("Location added successfully!");
+        return ResponseEntity.ok(new Message("Location added successfully!"));
     }
 
     public ResponseEntity<?> setDriverStatus(StatusMessage message) {
@@ -104,7 +105,7 @@ public class DriverService {
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Driver status not found");
         }
-        return ResponseEntity.ok("Status has been set successfully!");
+        return ResponseEntity.ok(new Message("Status has been set successfully!"));
     }
 
     private Optional<Status> checkStatusFromMessage(StatusMessage message) {
