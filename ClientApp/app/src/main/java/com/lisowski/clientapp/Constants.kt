@@ -5,6 +5,6 @@ object Constants {
     // Endpoints
     const val BASE_URL = "http://192.168.8.108:8081/api/"
     const val LOGIN_URL = "auth/signin"
-    const val POSTS_URL = "posts"
+    const val REGISTER_URL = "auth/signup"
 
 }

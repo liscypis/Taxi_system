@@ -1,16 +1,16 @@
 package com.lisowski.clientapp.activities
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.lisowski.clientapp.API.ApiClient
 import com.lisowski.clientapp.R
 import com.lisowski.clientapp.Utils.SharedPreferencesManager
+import com.lisowski.clientapp.Utils.clearError
 import com.lisowski.clientapp.models.APIError
 import com.lisowski.clientapp.models.LoginRequest
 import com.lisowski.clientapp.models.LoginResponse
@@ -31,8 +31,14 @@ class LoginActivity : AppCompatActivity() {
         apiClient = ApiClient()
         sessionManager = SharedPreferencesManager(this)
 
-        loginBnt.setOnClickListener {
+        noAccountTV.setOnClickListener{
+            val intent = Intent(applicationContext, RegisterActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+        }
 
+        loginBnt.setOnClickListener {
+            clearEditTextErrors()
             val login = loginInput.editText?.text.toString().trim()
             val password = passwordInput.editText?.text.toString().trim()
 
@@ -52,6 +58,8 @@ class LoginActivity : AppCompatActivity() {
                 .enqueue(object : Callback<LoginResponse> {
                     override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
                         Log.d(LOGIN_ACTIVITY, "onFailure: coś nie pykło ${t.message}")
+                        Toast.makeText(applicationContext, "Brak połączenia", Toast.LENGTH_LONG)
+                            .show()
                     }
 
                     override fun onResponse(
@@ -91,5 +99,9 @@ class LoginActivity : AppCompatActivity() {
         passwordInput.requestFocus()
         loginInput.error = " "
         loginInput.requestFocus()
+    }
+    private fun clearEditTextErrors() {
+        passwordInput.clearError()
+        loginInput.clearError()
     }
 }
