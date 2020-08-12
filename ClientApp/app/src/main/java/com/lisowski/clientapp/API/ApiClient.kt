@@ -1,5 +1,6 @@
 package com.lisowski.clientapp.API
 
+import com.google.gson.GsonBuilder
 import com.lisowski.clientapp.Constants
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -11,9 +12,11 @@ class ApiClient {
 
         // Initialize ApiService if not initialized yet
         if (!::apiService.isInitialized) {
+            val gson = GsonBuilder().setLenient().create()
+
             val retrofit = Retrofit.Builder()
                 .baseUrl(Constants.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(gson))
                 .build()
 
             apiService = retrofit.create(ApiService::class.java)
