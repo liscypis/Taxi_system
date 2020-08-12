@@ -1,5 +1,7 @@
 package com.lisowski.clientapp.models
 
+import kotlin.String
+
 data class RegisterRequest(
     val name: String,
     val surname: String,

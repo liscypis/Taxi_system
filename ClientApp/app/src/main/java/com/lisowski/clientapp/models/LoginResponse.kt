@@ -1,5 +1,7 @@
 package com.lisowski.clientapp.models
 
+import kotlin.String
+
 data class LoginResponse(
     var token: String,
     var type: String,

@@ -91,6 +91,9 @@ class LoginActivity : AppCompatActivity() {
                     if (response.isSuccessful) {
                         val loginResponse = response.body()
                         checkSuccessResponse(loginResponse)
+                        val intent = Intent(applicationContext, OrderActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        startActivity(intent)
                     } else {
                         getErrorResponse(response)
                     }

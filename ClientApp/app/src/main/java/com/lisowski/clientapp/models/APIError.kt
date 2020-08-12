@@ -1,5 +1,7 @@
 package com.lisowski.clientapp.models
 
+import kotlin.String
+
 data class APIError(
     val timestamp: String,
     val status: String,
