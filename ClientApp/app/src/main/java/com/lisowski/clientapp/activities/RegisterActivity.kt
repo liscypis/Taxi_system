@@ -1,5 +1,6 @@
 package com.lisowski.clientapp.activities
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -98,26 +99,42 @@ class RegisterActivity : AppCompatActivity() {
     private fun registerUser(request: RegisterRequest) {
         Log.d(REGISTER_ACTIVITY, "checkInputs: request $request")
         apiClient.getApiService().register(request)
-            .enqueue(object : Callback<String> {
-                override fun onFailure(call: Call<String>, t: Throwable) {
+            .enqueue(object : Callback<Message> {
+                override fun onFailure(call: Call<Message>, t: Throwable) {
                     Log.d(REGISTER_ACTIVITY, "onFailure: coś nie pykło ${t.message}")
                     Toast.makeText(applicationContext, "Brak połączenia", Toast.LENGTH_LONG)
                         .show()
                 }
 
-                override fun onResponse(call: Call<String>, response: Response<String>) {
-                    if(response.isSuccessful){
+                override fun onResponse(call: Call<Message>, response: Response<Message>) {
+                    if (response.isSuccessful) {
                         Log.d(REGISTER_ACTIVITY, "onResponse: ${response.body()}")
-                    } else{
+                        val intent = Intent(applicationContext, LoginActivity::class.java)
+                        intent.flags =
+                            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        startActivity(intent)
+                        Toast.makeText(applicationContext, "Utworzono konto!", Toast.LENGTH_LONG)
+                            .show()
+                    } else {
                         val gson = Gson()
                         val type = object : TypeToken<APIError>() {}.type
                         val errorResponse: APIError =
                             gson.fromJson(response.errorBody()?.charStream(), type)
                         Log.d(REGISTER_ACTIVITY, "onResponse fail: ${errorResponse.toString()}")
+                        checkError(errorResponse.message)
                     }
 
                 }
             })
+    }
+
+    private fun checkError(error: String) {
+        if (error == "Phone number is already in use")
+            registerPhoneInput.error = "Numer jest zajęty"
+        if (error == "Username is already in use")
+            registerUserNameInput.error = "Login jest zajęty"
+        if (error == "Email is already in use")
+            registerEmailInput.error = "Email jest zajęty"
     }
 
     private fun clearEditTextErrors() {

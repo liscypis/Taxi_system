@@ -1,4 +1,4 @@
 package com.lisowski.clientapp.models
 
-data class Message(val message: String) {
+data class Message(val msg: String) {
 }

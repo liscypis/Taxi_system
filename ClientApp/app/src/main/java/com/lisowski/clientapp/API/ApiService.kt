@@ -16,5 +16,5 @@ interface ApiService {
     fun login(@Body request: LoginRequest): Call<LoginResponse>
 
     @POST(Constants.REGISTER_URL)
-    fun register(@Body request: RegisterRequest): Call<String>
+    fun register(@Body request: RegisterRequest): Call<Message>
 }
