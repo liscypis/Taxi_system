@@ -23,6 +23,7 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var sessionManager: SharedPreferencesManager
     private lateinit var apiClient: ApiClient
     private var LOGIN_ACTIVITY = "LoginActivity";
+    private lateinit var userPassword: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,12 +32,13 @@ class LoginActivity : AppCompatActivity() {
         apiClient = ApiClient()
         sessionManager = SharedPreferencesManager(this)
 
-        noAccountTV.setOnClickListener{
+        loginWithSavedData()
+
+        noAccountTV.setOnClickListener {
             val intent = Intent(applicationContext, RegisterActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
         }
-
         loginBnt.setOnClickListener {
             clearEditTextErrors()
             val login = loginInput.editText?.text.toString().trim()
@@ -53,42 +55,72 @@ class LoginActivity : AppCompatActivity() {
                 passwordInput.requestFocus()
                 return@setOnClickListener
             }
-
-            apiClient.getApiService().login(LoginRequest(login, password))
-                .enqueue(object : Callback<LoginResponse> {
-                    override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
-                        Log.d(LOGIN_ACTIVITY, "onFailure: coś nie pykło ${t.message}")
-                        Toast.makeText(applicationContext, "Brak połączenia", Toast.LENGTH_LONG)
-                            .show()
-                    }
-
-                    override fun onResponse(
-                        call: Call<LoginResponse>,
-                        response: Response<LoginResponse>
-                    ) {
-                        if (response.isSuccessful) {
-                            val loginResponse = response.body()
-                            if (loginResponse?.token != null) {
-                                sessionManager.saveAuthToken(loginResponse.token)
-                                Log.d(
-                                    LOGIN_ACTIVITY,
-                                    "onResponse success: ${loginResponse.toString()}"
-                                )
-                            }
-                        } else {
-                            val gson = Gson()
-                            val type = object : TypeToken<APIError>() {}.type
-                            val errorResponse: APIError =
-                                gson.fromJson(response.errorBody()?.charStream(), type)
-                            Log.d(LOGIN_ACTIVITY, "onResponse fail: ${errorResponse.toString()}")
-                            if (errorResponse.message == "Unauthorized")
-                                showLoginError()
-                        }
-
-                    }
-                })
+            userPassword = password
+            loginToSystem(login, userPassword)
         }
 
+    }
+
+    /**
+     *  function check data from SharedPreferences. If there is data, try to log in
+     */
+    private fun loginWithSavedData() {
+        val userLogin = sessionManager.fetchUsername()
+        val userPass = sessionManager.fetchPassword()
+        if (userLogin != null || userPass != null) {
+            userPassword = userPass!!
+            loginToSystem(userLogin!!, userPassword)
+        }
+
+    }
+
+
+    private fun loginToSystem(login: String, password: String) {
+        Log.d(LOGIN_ACTIVITY, "dane logowanie $login, $password")
+        apiClient.getApiService().login(LoginRequest(login, password))
+            .enqueue(object : Callback<LoginResponse> {
+                override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
+                    Log.d(LOGIN_ACTIVITY, "onFailure: coś nie pykło ${t.message}")
+                    Toast.makeText(applicationContext, "Brak połączenia", Toast.LENGTH_LONG)
+                        .show()
+                }
+
+                override fun onResponse(
+                    call: Call<LoginResponse>, response: Response<LoginResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        val loginResponse = response.body()
+                        checkSuccessResponse(loginResponse)
+                    } else {
+                        getErrorResponse(response)
+                    }
+
+                }
+            })
+    }
+
+    private fun getErrorResponse(response: Response<LoginResponse>) {
+        val gson = Gson()
+        val type = object : TypeToken<APIError>() {}.type
+        val errorResponse: APIError =
+            gson.fromJson(response.errorBody()?.charStream(), type)
+        Log.d(LOGIN_ACTIVITY, "onResponse fail: ${errorResponse.toString()}")
+        if (errorResponse.message == "Unauthorized")
+            showLoginError()
+    }
+
+    private fun checkSuccessResponse(loginResponse: LoginResponse?) {
+        if (loginResponse!!.roles.contains("ROLE_USER")) {
+            sessionManager.saveUserData(
+                password = userPassword,
+                username = loginResponse.userName,
+                userID = loginResponse.id,
+                token = loginResponse.token
+            )
+            Log.d(LOGIN_ACTIVITY, "onResponse success: ${loginResponse.toString()}")
+        } else {
+            Toast.makeText(applicationContext, "Brak uprawnień", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun showLoginError() {
@@ -100,6 +132,7 @@ class LoginActivity : AppCompatActivity() {
         loginInput.error = " "
         loginInput.requestFocus()
     }
+
     private fun clearEditTextErrors() {
         passwordInput.clearError()
         loginInput.clearError()

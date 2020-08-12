@@ -5,16 +5,22 @@ import android.content.SharedPreferences
 import com.lisowski.clientapp.R
 
 class SharedPreferencesManager(context: Context) {
-    private var prefs: SharedPreferences =
+    private var sharedPref: SharedPreferences =
         context.getSharedPreferences(context.getString(R.string.app_name), Context.MODE_PRIVATE)
 
+    private val USER_ID = "user_id"
+    private val USERNAME = "username"
+    private val USER_PASSWORD = "user_password"
     private val USER_TOKEN = "user_token"
 
     /**
-     * Function to save auth token
+     * Function to save user data
      */
-    fun saveAuthToken(token: String) {
-        val editor = prefs.edit()
+    fun saveUserData(userID: Int, username: String, password: String, token: String) {
+        val editor = sharedPref.edit()
+        editor.putInt(USER_ID, userID)
+        editor.putString(USERNAME, username)
+        editor.putString(USER_PASSWORD, password)
         editor.putString(USER_TOKEN, token)
         editor.apply()
     }
@@ -23,6 +29,32 @@ class SharedPreferencesManager(context: Context) {
      * Function to fetch auth token
      */
     fun fetchAuthToken(): String? {
-        return prefs.getString(USER_TOKEN, null)
+        return sharedPref.getString(USER_TOKEN, null)
+    }
+    /**
+     * Function to fetch userID
+     */
+    fun fetchUserId(): Int? {
+        return sharedPref.getInt(USER_ID, -1)
+    }
+    /**
+     * Function to fetch username
+     */
+    fun fetchUsername(): String? {
+        return sharedPref.getString(USERNAME, null)
+    }
+    /**
+     * Function to fetch password
+     */
+    fun fetchPassword(): String? {
+        return sharedPref.getString(USER_PASSWORD, null)
+    }
+    /**
+     * Function to clear SharedPreferences
+     */
+    fun clear() {
+        val editor = sharedPref.edit()
+        editor.clear()
+        editor.apply()
     }
 }
