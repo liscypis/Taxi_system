@@ -6,4 +6,5 @@
     <string name="cancel">Anuluj</string>
     <string name="aproxOrderData">Przybliźone dane zamówienia</string>
     <string name="confirm">Potwierdź</string>
+    <string name="title_activity_maps">Map</string>
 </resources>

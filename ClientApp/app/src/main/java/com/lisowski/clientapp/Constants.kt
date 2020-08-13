@@ -9,4 +9,8 @@ object Constants {
     const val INITIAL_ORDER = "test/initialOrderRide"
     const val CONFIRM_ORDER = "test/confirmRide"
 
+
+
+    const val RIDE_DETAIL = "ride_detail"
+
 }

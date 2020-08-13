@@ -1,6 +1,10 @@
 package com.lisowski.clientapp.models
 
-data class RideDetailResponse(
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
+
+@Parcelize
+data class RideDetailResponse (
     val idRide: Long,
     val idDriver: Long,
     val userDistance: Long,
@@ -14,5 +18,5 @@ data class RideDetailResponse(
     val userPhone: String,
     val driverPhone: String,
     val approxPrice: String
-) {
+): Parcelable {
 }

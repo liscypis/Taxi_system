@@ -15,6 +15,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.lisowski.clientapp.API.ApiClient
+import com.lisowski.clientapp.Constants.RIDE_DETAIL
 import com.lisowski.clientapp.R
 import com.lisowski.clientapp.Utils.SharedPreferencesManager
 import com.lisowski.clientapp.Utils.clearError
@@ -41,6 +42,7 @@ class OrderActivity : AppCompatActivity() {
     private var timeLeftInMs :Long = 15000
     private var rideId: Long = -1
     private val context : Context = this
+    private lateinit var details :RideDetailResponse
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -136,7 +138,7 @@ class OrderActivity : AppCompatActivity() {
                 ) {
                     if (response.isSuccessful) {
                         Log.d(ORDER_ACTIVITY, "onResponse: ${response.body()}")
-                        val details: RideDetailResponse = response.body()!!
+                        details = response.body()!!
 
                         orderCard.visibility = View.VISIBLE
                         orderBnt.visibility = View.INVISIBLE
@@ -212,8 +214,12 @@ class OrderActivity : AppCompatActivity() {
                 override fun onResponse(call: Call<Message>, response: Response<Message>) {
                     if (response.isSuccessful) {
                         if(conf){
-                            //TODO otwierać mapke
                             stopTimer()
+                            val intent = Intent(applicationContext, MapsActivity::class.java)
+                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            intent.putExtra(RIDE_DETAIL, details)
+                            startActivity(intent)
+
                             Log.d(ORDER_ACTIVITY, "onResponse: ${response.body()}")
                         } else{
                             Log.d(ORDER_ACTIVITY, "onResponse: ${response.body()}")
