@@ -8,6 +8,7 @@ import com.lisowski.server.services.RideService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,6 +24,7 @@ public class RideController {
     @Autowired
     RideService rideService;
 
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PostMapping("/initialOrderRide")
     public ResponseEntity<?> initialOrderRide(@Valid @RequestBody RideRequest request) {
         return rideService.createPreDetailsRide(request);

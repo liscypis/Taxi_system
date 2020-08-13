@@ -5,7 +5,7 @@ import kotlin.String
 data class LoginResponse(
     var token: String,
     var type: String,
-    var id: Int,
+    var id: Long,
     var name: String,
     var surname: String,
     var userName: String,

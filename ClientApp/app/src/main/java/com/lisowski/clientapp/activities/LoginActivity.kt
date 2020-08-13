@@ -11,6 +11,7 @@ import com.lisowski.clientapp.API.ApiClient
 import com.lisowski.clientapp.R
 import com.lisowski.clientapp.Utils.SharedPreferencesManager
 import com.lisowski.clientapp.Utils.clearError
+import com.lisowski.clientapp.Utils.getApiError
 import com.lisowski.clientapp.models.APIError
 import com.lisowski.clientapp.models.LoginRequest
 import com.lisowski.clientapp.models.LoginResponse
@@ -103,10 +104,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun getErrorResponse(response: Response<LoginResponse>) {
-        val gson = Gson()
-        val type = object : TypeToken<APIError>() {}.type
-        val errorResponse: APIError =
-            gson.fromJson(response.errorBody()?.charStream(), type)
+        val errorResponse: APIError = getApiError(response as Response<Any>)
         Log.d(LOGIN_ACTIVITY, "onResponse fail: ${errorResponse.toString()}")
         if (errorResponse.message == "Unauthorized")
             showLoginError()

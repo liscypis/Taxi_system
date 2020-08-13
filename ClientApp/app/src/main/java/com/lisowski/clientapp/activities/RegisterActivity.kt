@@ -10,6 +10,7 @@ import com.google.gson.reflect.TypeToken
 import com.lisowski.clientapp.API.ApiClient
 import com.lisowski.clientapp.R
 import com.lisowski.clientapp.Utils.clearError
+import com.lisowski.clientapp.Utils.getApiError
 import com.lisowski.clientapp.models.APIError
 import com.lisowski.clientapp.models.LoginResponse
 import com.lisowski.clientapp.models.Message
@@ -116,10 +117,7 @@ class RegisterActivity : AppCompatActivity() {
                         Toast.makeText(applicationContext, "Utworzono konto!", Toast.LENGTH_LONG)
                             .show()
                     } else {
-                        val gson = Gson()
-                        val type = object : TypeToken<APIError>() {}.type
-                        val errorResponse: APIError =
-                            gson.fromJson(response.errorBody()?.charStream(), type)
+                        val errorResponse: APIError = getApiError(response as Response<Any>)
                         Log.d(REGISTER_ACTIVITY, "onResponse fail: ${errorResponse.toString()}")
                         checkError(errorResponse.message)
                     }

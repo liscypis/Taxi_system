@@ -16,9 +16,9 @@ class SharedPreferencesManager(context: Context) {
     /**
      * Function to save user data
      */
-    fun saveUserData(userID: Int, username: String, password: String, token: String) {
+    fun saveUserData(userID: Long, username: String, password: String, token: String) {
         val editor = sharedPref.edit()
-        editor.putInt(USER_ID, userID)
+        editor.putLong(USER_ID, userID)
         editor.putString(USERNAME, username)
         editor.putString(USER_PASSWORD, password)
         editor.putString(USER_TOKEN, token)
@@ -34,8 +34,8 @@ class SharedPreferencesManager(context: Context) {
     /**
      * Function to fetch userID
      */
-    fun fetchUserId(): Int? {
-        return sharedPref.getInt(USER_ID, -1)
+    fun fetchUserId(): Long? {
+        return sharedPref.getLong(USER_ID, -1L)
     }
     /**
      * Function to fetch username
