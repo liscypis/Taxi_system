@@ -2,4 +2,7 @@
     <string name="app_name">ClientApp</string>
     <string name="login">Zaloguj</string>
     <string name="singup">Zarejestruj</string>
+    <string name="order">Zamów</string>
+    <string name="cancel">Anuluj</string>
+    <string name="aproxOrderData">Przybliźone dane zamówienia</string>
 </resources>
