@@ -1,5 +1,6 @@
 package com.lisowski.clientapp.activities
 
+import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -10,6 +11,7 @@ import android.widget.AdapterView
 import android.widget.Toast
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.PlacesClient
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.lisowski.clientapp.API.ApiClient
@@ -38,10 +40,13 @@ class OrderActivity : AppCompatActivity() {
     private val ORDER_ACTIVITY = "OrderActivity"
     private var timeLeftInMs :Long = 15000
     private var rideId: Long = -1
+    private val context : Context = this
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_order)
+
+        hideCard()
 
         apiClient = ApiClient()
         sessionManager = SharedPreferencesManager(this)
@@ -70,13 +75,20 @@ class OrderActivity : AppCompatActivity() {
                 }
             }
 
-        orderCard.visibility = View.GONE
+        cancelBnt.setOnClickListener {
+            confirmRide(rideId, false)
+            stopTimer()
+        }
+        confirmBnt.setOnClickListener {
+            confirmRide(rideId, true)
+        }
 
         orderBnt.setOnClickListener {
             clearErrorTV()
             //TODO Do testów
             originAutoCompleteTV.setText("Ludomira Różyckiego 25, Kielce, Polska")
             destinationAutoCompleteTV.setText("Wapiennikowa 45, Kielce, Polska")
+
             val origin = originAutoCompleteTV.text.toString().trim()
             val destination = destinationAutoCompleteTV.text.toString().trim()
             var error = false
@@ -137,6 +149,13 @@ class OrderActivity : AppCompatActivity() {
                     } else {
                         val errorResponse: APIError = getApiError(response as Response<Any>)
                         Log.d(ORDER_ACTIVITY, "onResponse fail: ${errorResponse.toString()}")
+                        MaterialAlertDialogBuilder(context)
+                            .setTitle("Brak kierowców")
+                            .setMessage("Brak dostępnych kierówców, proszę spróbować później")
+                            .setPositiveButton("OK") { _, _ ->
+                                // Respond to positive button press
+                            }
+                            .show()
                     }
 
                 }
@@ -157,7 +176,7 @@ class OrderActivity : AppCompatActivity() {
     private fun startTimer() {
         countDownTimer = object :CountDownTimer(timeLeftInMs, 1000) {
             override fun onFinish() {
-                cancelRide(rideId)
+                confirmRide(rideId, false)
                 Log.d(ORDER_ACTIVITY, "CountDownTimer: finish ")
             }
 
@@ -174,11 +193,14 @@ class OrderActivity : AppCompatActivity() {
         countdownTV.text = sec.toString()
         Log.d(ORDER_ACTIVITY, "updateTimer: $sec")
     }
+    private fun stopTimer() {
+        countDownTimer.cancel()
+    }
 
-    private fun cancelRide(rideId: Long) {
+    private fun confirmRide(rideId: Long, conf: Boolean) {
         apiClient.getApiService()
             .confirmRide(token = "Bearer ${sessionManager.fetchAuthToken()}",
-                request = ConfirmRequest(idRide = rideId, confirm = false)
+                request = ConfirmRequest(idRide = rideId, confirm = conf)
             )
             .enqueue(object : Callback<Message> {
                 override fun onFailure(call: Call<Message>, t: Throwable) {
@@ -189,10 +211,17 @@ class OrderActivity : AppCompatActivity() {
 
                 override fun onResponse(call: Call<Message>, response: Response<Message>) {
                     if (response.isSuccessful) {
-                        Log.d(ORDER_ACTIVITY, "onResponse: ${response.body()}")
-
-                        Toast.makeText(applicationContext, "Zamowienie anulowane", Toast.LENGTH_LONG)
-                            .show()
+                        if(conf){
+                            //TODO otwierać mapke
+                            stopTimer()
+                            Log.d(ORDER_ACTIVITY, "onResponse: ${response.body()}")
+                        } else{
+                            Log.d(ORDER_ACTIVITY, "onResponse: ${response.body()}")
+                            hideCard()
+                            orderBnt.visibility = View.VISIBLE
+                            Toast.makeText(applicationContext, "Zamowienie anulowane", Toast.LENGTH_LONG)
+                                .show()
+                        }
                     } else {
                         val errorResponse: APIError = getApiError(response as Response<Any>)
                         Log.d(ORDER_ACTIVITY, "onResponse fail: ${errorResponse.toString()}")
@@ -201,5 +230,8 @@ class OrderActivity : AppCompatActivity() {
                     }
                 }
             })
+    }
+    private fun hideCard() {
+        orderCard.visibility = View.GONE
     }
 }
