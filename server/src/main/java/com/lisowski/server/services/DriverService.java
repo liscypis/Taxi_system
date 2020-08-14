@@ -1,5 +1,6 @@
 package com.lisowski.server.services;
 
+import com.lisowski.server.DTO.CarDTO;
 import com.lisowski.server.DTO.DriverPositionHistoryDTO;
 import com.lisowski.server.DTO.request.AddCarRequest;
 import com.lisowski.server.DTO.request.LocationLog;
@@ -121,6 +122,10 @@ public class DriverService {
 
     public String getDriverPosition(Long driverId) {
         return  driverPosHistRepository.findLastPositions(List.of(driverId)).get(0).getLocation();
+    }
+    public CarDTO getDriverCar(Long id){
+        User user = userRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));;
+        return new CarDTO(user);
     }
 
 }

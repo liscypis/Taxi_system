@@ -31,6 +31,8 @@ public class RideDetails {
 
     private float price;
 
+    private Integer rating;
+
     @OneToOne(mappedBy = "rideDetails")
     private Ride ride;
 

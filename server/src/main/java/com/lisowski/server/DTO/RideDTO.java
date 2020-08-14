@@ -20,6 +20,7 @@ public class RideDTO {
     private String driverPolyline;
     private String userLocation;
     private String userDestination;
+    private Integer rating;
     private float price;
 
     public RideDTO(Ride ride) {
@@ -36,5 +37,6 @@ public class RideDTO {
         this.userDistance = ride.getRideDetails().getUserDistance();
         this.driverDistance = ride.getRideDetails().getDriverDistance();
         this.price = ride.getRideDetails().getPrice();
+        this.rating = ride.getRideDetails().getRating();
     }
 }

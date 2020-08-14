@@ -1,5 +1,6 @@
 package com.lisowski.server.api;
 
+import com.lisowski.server.DTO.CarDTO;
 import com.lisowski.server.DTO.UserDTO;
 import com.lisowski.server.DTO.request.AddCarRequest;
 import com.lisowski.server.DTO.request.LocationLog;
@@ -49,6 +50,10 @@ public class DriverController {
     @GetMapping("/getDriverLocation/{driverID}")
     public ResponseEntity<Message> authenticateUser(@PathVariable("driverID") Long id) {
         return ResponseEntity.ok(new Message(driverService.getDriverPosition(id)));
+    }
+    @GetMapping("/getCarByDriverId/{id}")
+    public ResponseEntity<CarDTO> getCar(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(driverService.getDriverCar(id));
     }
 
 

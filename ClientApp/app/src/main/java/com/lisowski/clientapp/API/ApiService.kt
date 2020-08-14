@@ -45,4 +45,11 @@ interface ApiService {
         @Path("id")
         rideId: Long
     ): Observable<Message>
+
+    @GET(Constants.GET_DRIVER_CAR)
+    fun getDriverCar(
+        @Header("Authorization") token: String,
+        @Path("id")
+        rideId: Long
+    ): Observable<Car>
 }

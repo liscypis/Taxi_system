@@ -11,6 +11,7 @@ object Constants {
     const val GET_POSITION = "test/getDriverLocation/{driverID}"
     const val GET_RIDE_STATUS = "test/getRideStatus/{id}"
     const val CONFIRM_DRIVER_ARRIVE = "test/confirmDriverArrival/{id}"
+    const val GET_DRIVER_CAR = "test/getCarByDriverId/{id}"
 
 
 

@@ -212,9 +212,8 @@ public class RideService {
         return status;
     }
 
-    public ResponseEntity<?> getRideStatus(Long id) {
-        Ride ride = rideRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ride or status not found"));
-        return ResponseEntity.ok(ride.getRideStatus());
+    public Ride getRideStatus(Long id) {
+        return rideRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ride or status not found"));
     }
 
     public ResponseEntity<?> checkForNewRide(Long id) {
@@ -227,13 +226,13 @@ public class RideService {
         }
     }
 
-    public ResponseEntity<?> confirmDriverArrival(ConfirmRide request) {
-        Ride ride = rideRepository.findById(request.getIdRide()).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ride not found"));
+    public Message confirmDriverArrival(Long id) {
+        Ride ride = rideRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ride not found"));
         ride.setRideStatus(ERideStatus.ON_THE_WAY_TO_DEST.name());
         ride.getRideDetails().setTimeArriveToUser(Instant.now());
         rideRepository.save(ride);
 
-        return ResponseEntity.ok(new Message("Status successfully set"));
+        return new Message("Status successfully set");
     }
 
     public ResponseEntity<?> getPriceForRide(Long id) {

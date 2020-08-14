@@ -19,6 +19,7 @@ import com.lisowski.clientapp.API.ApiClient
 import com.lisowski.clientapp.Constants.RIDE_DETAIL
 import com.lisowski.clientapp.R
 import com.lisowski.clientapp.Utils.SharedPreferencesManager
+import com.lisowski.clientapp.models.Car
 import com.lisowski.clientapp.models.Message
 import com.lisowski.clientapp.models.RideDetailResponse
 import io.reactivex.Observable
@@ -48,6 +49,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
     private var driverId: Long = -1
     private var rideId: Long = -1
     private var driverMarker: Marker? = null
+    private lateinit var car: Car
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,6 +67,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
         Log.d(MAPS_ACTIVITY, "onCreate: $details")
         timeLeftInMs *= details.driverDuration
 
+        getCarInfo(details.idDriver)
         saveRideIdAndDriverIdInSP()
         startTimer()
         initDisposableLoc()
@@ -78,9 +81,29 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
         }
     }
 
+    private fun getCarInfo(idDriver: Long) {
+        val observable = apiClient.getApiService()
+            .getDriverCar(token = "Bearer ${sessionManager.fetchAuthToken()}", rideId = idDriver)
+        val subscribe = observable.observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe({ response -> carResponse(response) }, { t -> onFailure(t) })
+    }
+
+    private fun carResponse(response: Car?) {
+        Log.d(MAPS_ACTIVITY, "carResponse: $response")
+        car = response!!
+        carBrandTV.text = car.carBrand
+        carModelTV.text = car.carModel
+        carColorTV.text = car.color
+        carRegNumTV.text = car.registrationNumber
+    }
+
     private fun confirmDriverArrive() {
         val observable = apiClient.getApiService()
-            .confirmDriverArrive(token = "Bearer ${sessionManager.fetchAuthToken()}", rideId = rideId)
+            .confirmDriverArrive(
+                token = "Bearer ${sessionManager.fetchAuthToken()}",
+                rideId = rideId
+            )
         val subscribe = observable.observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
             .subscribe({ response -> statusOnResponse(response) }, { t -> onFailure(t) })
@@ -122,12 +145,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
 
     private fun statusOnResponse(response: Message?) {
         Log.d(MAPS_ACTIVITY, "statusOnResponse: $response")
-        if(response!!.msg == "WAITING_FOR_USER"){
+        if (response!!.msg == "WAITING_FOR_USER") {
             showDialog()
             showConfirmCard()
             disposableRideStatus.dispose()
         }
-        if(response!!.msg == "ENDING") {
+        if (response!!.msg == "ENDING") {
             //TODO wywołać /getPriceForRide{id} wyświetli się okno z info ile do zapłaty. KLIK ZAPłać /setStatus a potemjak chce wystaw ocene /setRating
         }
     }
@@ -135,6 +158,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
     private fun showConfirmCard() {
         confirmArriveCard.visibility = View.VISIBLE
     }
+
     private fun hideConfirmCard() {
         confirmArriveCard.visibility = View.GONE
     }
