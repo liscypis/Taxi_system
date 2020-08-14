@@ -4,6 +4,7 @@ import com.lisowski.server.DTO.UserDTO;
 import com.lisowski.server.DTO.request.AddCarRequest;
 import com.lisowski.server.DTO.request.LocationLog;
 import com.lisowski.server.DTO.request.StatusMessage;
+import com.lisowski.server.DTO.response.Message;
 import com.lisowski.server.models.Car;
 import com.lisowski.server.services.DriverService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,8 +47,8 @@ public class DriverController {
         return driverService.setDriverStatus(message);
     }
     @GetMapping("/getDriverLocation/{driverID}")
-    public String authenticateUser(@PathVariable("driverID") Long id) {
-        return driverService.getDriverPosition(id);
+    public ResponseEntity<Message> authenticateUser(@PathVariable("driverID") Long id) {
+        return ResponseEntity.ok(new Message(driverService.getDriverPosition(id)));
     }
 
 

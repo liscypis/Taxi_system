@@ -4,6 +4,8 @@ import com.lisowski.server.DTO.RideDTO;
 import com.lisowski.server.DTO.request.ConfirmRide;
 import com.lisowski.server.DTO.request.RideRequest;
 import com.lisowski.server.DTO.request.StatusMessage;
+import com.lisowski.server.DTO.response.Message;
+import com.lisowski.server.models.Ride;
 import com.lisowski.server.services.RideService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -45,8 +47,9 @@ public class RideController {
     }
 
     @GetMapping("/getRideStatus/{id}")
-    public ResponseEntity<?> getRideStatus(@PathVariable("id") Long id) {
-        return rideService.getRideStatus(id);
+    public ResponseEntity<Message> getRideStatus(@PathVariable("id") Long id) {
+        Ride ride = rideService.getRideStatus(id);
+            return ResponseEntity.ok(new Message(ride.getRideStatus()));
     }
 
     @GetMapping("/checkForNewRide/{id}")
@@ -55,9 +58,9 @@ public class RideController {
     }
 
 
-    @PostMapping("/confirmDriverArrival")
-    public ResponseEntity<?> confirmDriverArrival(@Valid @RequestBody ConfirmRide request) {
-        return rideService.confirmDriverArrival(request);
+    @PutMapping("/confirmDriverArrival/{id}")
+    public ResponseEntity<Message> confirmDriverArrival(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(rideService.confirmDriverArrival(id));
     }
 
     @GetMapping("/getPriceForRide/{id_ride}")

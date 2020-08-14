@@ -1,17 +1,19 @@
 package com.lisowski.clientapp.activities
 
-import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
+import android.view.View
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.maps.android.PolyUtil
 import com.lisowski.clientapp.API.ApiClient
 import com.lisowski.clientapp.Constants.RIDE_DETAIL
@@ -28,20 +30,24 @@ import java.util.concurrent.TimeUnit
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolylineClickListener {
 
-    enum class TimerState{
+    enum class TimerState {
         Stopped, Paused, Running
     }
+
     private lateinit var mMap: GoogleMap
     private val MAPS_ACTIVITY: String = "MapsActivity"
     private lateinit var details: RideDetailResponse
     private lateinit var countDownTimer: CountDownTimer
     private lateinit var sessionManager: SharedPreferencesManager
-    private lateinit var disposableLoc: Disposable;
+    private lateinit var disposableLoc: Disposable
+    private lateinit var disposableRideStatus: Disposable
     private lateinit var apiClient: ApiClient
-    private var timeLeftInMs :Long = 1000
+    private val context: Context = this
+    private var timeLeftInMs: Long = 1000
     private var timerState = TimerState.Stopped
-    private var driverId : Long = -1
-    private var driverMarker : Marker? = null
+    private var driverId: Long = -1
+    private var rideId: Long = -1
+    private var driverMarker: Marker? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,28 +59,105 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
 
         apiClient = ApiClient()
         sessionManager = SharedPreferencesManager(this)
+
         details = intent.getParcelableExtra(RIDE_DETAIL)!!
-        driverId = details.idDriver
-        sessionManager.saveDriverId(driverId)
+
         Log.d(MAPS_ACTIVITY, "onCreate: $details")
         timeLeftInMs *= details.driverDuration
 
+        saveRideIdAndDriverIdInSP()
         startTimer()
-        disposableLoc = Observable.interval(1000, 15000,
-            TimeUnit.MILLISECONDS)
+        initDisposableLoc()
+        initDisposableRideStatus()
+        hideConfirmCard()
+
+        confirmArriveBnt.setOnClickListener {
+            confirmDriverArrive()
+            initDisposableRideStatus()
+            hideConfirmCard()
+        }
+    }
+
+    private fun confirmDriverArrive() {
+        val observable = apiClient.getApiService()
+            .confirmDriverArrive(token = "Bearer ${sessionManager.fetchAuthToken()}", rideId = rideId)
+        val subscribe = observable.observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe({ response -> statusOnResponse(response) }, { t -> onFailure(t) })
+    }
+
+    private fun initDisposableRideStatus() {
+        disposableRideStatus = Observable.interval(
+            1000, 5000,
+            TimeUnit.MILLISECONDS
+        )
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe {callDriverPosition()}
+            .subscribe { callRideStatus() }
+    }
+
+    private fun initDisposableLoc() {
+        disposableLoc = Observable.interval(
+            1000, 15000,
+            TimeUnit.MILLISECONDS
+        )
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { callDriverPosition() }
+    }
+
+    private fun saveRideIdAndDriverIdInSP() {
+        driverId = details.idDriver
+        sessionManager.saveDriverId(driverId)
+        rideId = details.idRide
+        sessionManager.saveRideId(rideId)
+    }
+
+    private fun callRideStatus() {
+        Log.d(MAPS_ACTIVITY, "callRideStatus: ride id $rideId")
+        val observable = apiClient.getApiService()
+            .getRideStatus(token = "Bearer ${sessionManager.fetchAuthToken()}", rideId = rideId)
+        val subscribe = observable.observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe({ response -> statusOnResponse(response) }, { t -> onFailure(t) })
+    }
+
+    private fun statusOnResponse(response: Message?) {
+        Log.d(MAPS_ACTIVITY, "statusOnResponse: $response")
+        if(response!!.msg == "WAITING_FOR_USER"){
+            showDialog()
+            showConfirmCard()
+            disposableRideStatus.dispose()
+        }
+        if(response!!.msg == "ENDING") {
+            //TODO wywołać /getPriceForRide{id} wyświetli się okno z info ile do zapłaty. KLIK ZAPłać /setStatus a potemjak chce wystaw ocene /setRating
+        }
+    }
+
+    private fun showConfirmCard() {
+        confirmArriveCard.visibility = View.VISIBLE
+    }
+    private fun hideConfirmCard() {
+        confirmArriveCard.visibility = View.GONE
+    }
+
+    private fun showDialog() {
+        MaterialAlertDialogBuilder(context)
+            .setTitle("Kierowca czeka na Ciebie")
+            .setPositiveButton("OK") { _, _ ->
+                // Respond to positive button press
+            }
+            .show()
     }
 
     private fun callDriverPosition() {
-        var observable = apiClient.getApiService().getDriverLoc(token = "Bearer ${sessionManager.fetchAuthToken()}",driverID = driverId)
+        val observable = apiClient.getApiService()
+            .getDriverLoc(token = "Bearer ${sessionManager.fetchAuthToken()}", driverID = driverId)
         val subscribe = observable.observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
             .subscribe({ response -> locationResponse(response) }, { t -> onFailure(t) })
     }
 
     private fun onFailure(t: Throwable?) {
-        Log.d(MAPS_ACTIVITY, "onFailure: ${t.toString()}")
+        Log.d(MAPS_ACTIVITY, "onFailure: ${t!!.message}")
     }
 
     private fun locationResponse(response: Message?) {
@@ -82,8 +165,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
             Log.d(MAPS_ACTIVITY, "locationResponse: ${response.msg} ")
             val driverLoc: List<Double> = response.msg.split(",").map { it.toDouble() }
             val userMarker = LatLng(driverLoc[0], driverLoc[1])
-            if(driverMarker == null) {
-                driverMarker = mMap.addMarker(MarkerOptions().position(userMarker).title("Kierowca"))
+            if (driverMarker == null) {
+                driverMarker =
+                    mMap.addMarker(MarkerOptions().position(userMarker).title("Kierowca"))
             } else
                 driverMarker!!.position = userMarker
         }
@@ -91,26 +175,31 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
 
     override fun onPause() {
         super.onPause()
-        if(timerState == TimerState.Running) {
+        if (timerState == TimerState.Running) {
             stopTimer()
-            sessionManager.saveTimerData(timeLeft = timeLeftInMs, pausedTime = System.currentTimeMillis(), timerState = TimerState.Paused)
+            sessionManager.saveTimerData(
+                timeLeft = timeLeftInMs,
+                pausedTime = System.currentTimeMillis(),
+                timerState = TimerState.Paused
+            )
         }
-        disposableLoc.dispose();
+        disposableLoc.dispose()
+        disposableRideStatus.dispose()
     }
 
     override fun onResume() {
         super.onResume()
         val timerStateId = sessionManager.fetchTimeState()!!
 
-        if(timerStateId > -1)
+        if (timerStateId > -1)
             timerState = TimerState.values()[timerStateId]
 
-        if(timerState == TimerState.Paused) {
+        if (timerState == TimerState.Paused) {
             timeLeftInMs = sessionManager.fetchTimeLeft()!!
             val pausedTime = sessionManager.fetchPausedTime()!!
-            if(timeLeftInMs > 0 && pausedTime > 0){
+            if (timeLeftInMs > 0 && pausedTime > 0) {
                 val difference = System.currentTimeMillis() - pausedTime
-                if(timeLeftInMs - difference > 0) {
+                if (timeLeftInMs - difference > 0) {
                     timeLeftInMs -= difference
                     startTimer()
                 } else
@@ -118,17 +207,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
             }
         }
 
-        val id = sessionManager.fetchDriverId()!!
-        if(id != -1L)
-            driverId = id
+        loadDriverIDandRideIDfromSP()
 
-        if(disposableLoc.isDisposed){
-            disposableLoc = Observable.interval(2000, 15000,
-                TimeUnit.MILLISECONDS)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe {callDriverPosition()}
+        if (disposableLoc.isDisposed) {
+            initDisposableLoc()
         }
+        if (disposableRideStatus.isDisposed) {
+            initDisposableRideStatus()
+        }
+    }
 
+    private fun loadDriverIDandRideIDfromSP() {
+        val id = sessionManager.fetchDriverId()!!
+        if (id != -1L)
+            driverId = id
+        val rideID = sessionManager.fetchRideId()!!
+        if (rideID != -1L)
+            rideId = rideID
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -168,7 +263,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
     }
 
     override fun onPolylineClick(poly: Polyline?) {
-        if(poly?.width == 5f)
+        if (poly?.width == 5f)
             poly.width = 15f
         else
             poly?.width = 5f
@@ -176,10 +271,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
 
     private fun startTimer() {
         timerState = TimerState.Running
-        countDownTimer = object :CountDownTimer(timeLeftInMs, 60000) {
+        countDownTimer = object : CountDownTimer(timeLeftInMs, 60000) {
             override fun onFinish() {
                 Log.d(MAPS_ACTIVITY, "CountDownTimer: finish ")
-                sessionManager.saveTimerData(timeLeft = -1, pausedTime = -1, timerState = TimerState.Stopped)
+                sessionManager.saveTimerData(
+                    timeLeft = -1,
+                    pausedTime = -1,
+                    timerState = TimerState.Stopped
+                )
                 timerState = TimerState.Stopped
             }
 
@@ -197,6 +296,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
         minCounterTV.append(" min")
         Log.d(MAPS_ACTIVITY, "updateTimer: $sec")
     }
+
     private fun stopTimer() {
         countDownTimer.cancel()
     }

@@ -9,6 +9,8 @@ object Constants {
     const val INITIAL_ORDER = "test/initialOrderRide"
     const val CONFIRM_ORDER = "test/confirmRide"
     const val GET_POSITION = "test/getDriverLocation/{driverID}"
+    const val GET_RIDE_STATUS = "test/getRideStatus/{id}"
+    const val CONFIRM_DRIVER_ARRIVE = "test/confirmDriverArrival/{id}"
 
 
 

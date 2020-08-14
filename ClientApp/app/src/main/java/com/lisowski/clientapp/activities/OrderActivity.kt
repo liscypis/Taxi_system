@@ -144,10 +144,12 @@ class OrderActivity : AppCompatActivity() {
                         orderBnt.visibility = View.INVISIBLE
                         rideId = details.idRide
 
-                        priceTV.append(details.approxPrice)
-                        timeTV.append(getTimeFromResponse(details))
+                        priceTV.text = details.approxPrice
+                        timeTV.text = getTimeFromResponse(details)
 
+                        timeLeftInMs = 15000
                         startTimer()
+
                     } else {
                         val errorResponse: APIError = getApiError(response as Response<Any>)
                         Log.d(ORDER_ACTIVITY, "onResponse fail: ${errorResponse.toString()}")
