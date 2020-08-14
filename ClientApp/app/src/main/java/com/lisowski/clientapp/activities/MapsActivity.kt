@@ -18,17 +18,24 @@ import com.google.android.gms.maps.model.PolylineOptions
 import com.google.maps.android.PolyUtil
 import com.lisowski.clientapp.Constants.RIDE_DETAIL
 import com.lisowski.clientapp.R
+import com.lisowski.clientapp.Utils.SharedPreferencesManager
 import com.lisowski.clientapp.models.RideDetailResponse
 import kotlinx.android.synthetic.main.activity_maps.*
 import kotlinx.android.synthetic.main.activity_order.*
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolylineClickListener {
 
+    enum class TimerState{
+        Stopped, Paused, Running
+    }
     private lateinit var mMap: GoogleMap
     private val MAPS_ACTIVITY: String = "MapsActivity"
     private lateinit var details: RideDetailResponse
     private lateinit var countDownTimer: CountDownTimer
+    private lateinit var sessionManager: SharedPreferencesManager
     private var timeLeftInMs :Long = 1000
+    private var timerState = TimerState.Stopped
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
@@ -37,12 +44,42 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
+        sessionManager = SharedPreferencesManager(this)
         details = intent.getParcelableExtra(RIDE_DETAIL)!!
         Log.d(MAPS_ACTIVITY, "onCreate: $details")
         timeLeftInMs *= details.driverDuration
+
         startTimer()
     }
 
+    override fun onPause() {
+        super.onPause()
+        if(timerState == TimerState.Running) {
+            stopTimer()
+            sessionManager.saveTimerData(timeLeft = timeLeftInMs, pausedTime = System.currentTimeMillis(), timerState = TimerState.Paused)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val timerStateId = sessionManager.fetchTimeState()!!
+
+        if(timerStateId > -1)
+            timerState = TimerState.values()[timerStateId]
+
+        if(timerState == TimerState.Paused) {
+            timeLeftInMs = sessionManager.fetchTimeLeft()!!
+            val pausedTime = sessionManager.fetchPausedTime()!!
+            if(timeLeftInMs > 0 && pausedTime > 0){
+                val difference = System.currentTimeMillis() - pausedTime
+                if(timeLeftInMs - difference > 0) {
+                    timeLeftInMs -= difference
+                    startTimer()
+                } else
+                    minCounterTV.text = "0 min"
+            }
+        }
+    }
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
@@ -88,9 +125,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
     }
 
     private fun startTimer() {
+        timerState = TimerState.Running
         countDownTimer = object :CountDownTimer(timeLeftInMs, 60000) {
             override fun onFinish() {
                 Log.d(MAPS_ACTIVITY, "CountDownTimer: finish ")
+                sessionManager.saveTimerData(timeLeft = -1, pausedTime = -1, timerState = TimerState.Stopped)
+                timerState = TimerState.Stopped
             }
 
             override fun onTick(tick: Long) {
