@@ -16,6 +16,7 @@ class SharedPreferencesManager(context: Context) {
     private val PAUSED_TIME = "paused_time"
     private val TIME_LEFT = "time_left"
     private val TIME_STATE = "time_stare"
+    private val DRIVER_ID = "driver_id"
 
     /**
      * Function to save user data
@@ -27,6 +28,10 @@ class SharedPreferencesManager(context: Context) {
         editor.putString(USER_PASSWORD, password)
         editor.putString(USER_TOKEN, token)
         editor.apply()
+    }
+    fun saveDriverId(id: Long) {
+        val editor = sharedPref.edit()
+        editor.putLong(DRIVER_ID, id)
     }
 
     /**
@@ -77,6 +82,9 @@ class SharedPreferencesManager(context: Context) {
     }
     fun fetchTimeState(): Int? {
         return sharedPref.getInt(TIME_STATE, -1)
+    }
+    fun fetchDriverId(): Long? {
+        return sharedPref.getLong(DRIVER_ID, -1)
     }
     /**
      * Function to clear SharedPreferences

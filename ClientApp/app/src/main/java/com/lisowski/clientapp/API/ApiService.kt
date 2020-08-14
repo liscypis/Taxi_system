@@ -3,10 +3,8 @@ package com.lisowski.clientapp.API
 import com.lisowski.clientapp.Constants
 import com.lisowski.clientapp.models.*
 import retrofit2.Call
-import retrofit2.http.Body
-import retrofit2.http.Header
-import retrofit2.http.Headers
-import retrofit2.http.POST
+import retrofit2.http.*
+import io.reactivex.Observable
 
 interface ApiService {
 
@@ -21,4 +19,7 @@ interface ApiService {
 
     @POST(Constants.CONFIRM_ORDER)
     fun confirmRide(@Header("Authorization") token: String, @Body request: ConfirmRequest): Call<Message>
+
+    @GET(Constants.GET_POSITION)
+    fun getDriverLoc(@Header("Authorization") token: String, @Path("driverID") driverID: Long): Observable<Message>
 }

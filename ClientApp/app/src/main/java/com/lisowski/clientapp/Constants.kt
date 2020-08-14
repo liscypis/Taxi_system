@@ -8,6 +8,7 @@ object Constants {
     const val REGISTER_URL = "auth/signup"
     const val INITIAL_ORDER = "test/initialOrderRide"
     const val CONFIRM_ORDER = "test/confirmRide"
+    const val GET_POSITION = "test/getDriverLocation/{driverID}"
 
 
 
