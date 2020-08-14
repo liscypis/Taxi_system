@@ -89,6 +89,7 @@
 
                 <!-- Title, secondary and supporting text -->
                 <TextView
+                    android:id="@+id/infoCounterTV"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/pt_sans_bold"

@@ -235,14 +235,14 @@ public class RideService {
         return new Message("Status successfully set");
     }
 
-    public ResponseEntity<?> getPriceForRide(Long id) {
+    public float getPriceForRide(Long id) {
         Ride ride = rideRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ride not found"));
         ride.getRideDetails().setTimeEnd(Instant.now());
         Duration duration = Duration.between(ride.getRideDetails().getTimeStart(), ride.getRideDetails().getTimeEnd());
         ride.getRideDetails().setPrice(calculatePrice(duration.getSeconds(), ride.getRideDetails().getUserDistance()));
         rideRepository.save(ride);
 
-        return ResponseEntity.ok(ride.getRideDetails().getPrice());
+        return ride.getRideDetails().getPrice();
     }
 
     public List<RideDTO> getDriverRides(Long driverId) {

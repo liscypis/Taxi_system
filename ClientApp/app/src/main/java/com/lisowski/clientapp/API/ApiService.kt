@@ -52,4 +52,17 @@ interface ApiService {
         @Path("id")
         rideId: Long
     ): Observable<Car>
+
+    @GET(Constants.GET_PRICE)
+    fun getPriceForRide(
+        @Header("Authorization") token: String,
+        @Path("id_ride")
+        id_ride: Long
+    ): Observable<Message>
+
+    @PUT(Constants.COMPLETE_RIDE)
+    fun setRideToComplete(
+        @Header("Authorization") token: String,
+        @Body request: StatusMessage
+    ): Observable<Message>
 }

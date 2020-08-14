@@ -64,8 +64,8 @@ public class RideController {
     }
 
     @GetMapping("/getPriceForRide/{id_ride}")
-    public ResponseEntity<?> getPriceForRide(@PathVariable("id_ride") Long id) {
-        return rideService.getPriceForRide(id);
+    public ResponseEntity<Message> getPriceForRide(@PathVariable("id_ride") Long id) {
+        return ResponseEntity.ok(new Message(Float.toString(rideService.getPriceForRide(id))));
     }
 
     @GetMapping("/getDriverRidesByDriverId/{id_driver}")

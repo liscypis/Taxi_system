@@ -12,9 +12,13 @@ object Constants {
     const val GET_RIDE_STATUS = "test/getRideStatus/{id}"
     const val CONFIRM_DRIVER_ARRIVE = "test/confirmDriverArrival/{id}"
     const val GET_DRIVER_CAR = "test/getCarByDriverId/{id}"
+    const val GET_PRICE = "test/getPriceForRide/{id_ride}"
+    const val COMPLETE_RIDE = "test/setRideStatus"
 
 
 
     const val RIDE_DETAIL = "ride_detail"
+
+    const val COMPLETE = "complete"
 
 }
