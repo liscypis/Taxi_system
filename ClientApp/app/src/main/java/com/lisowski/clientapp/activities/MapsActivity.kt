@@ -1,12 +1,18 @@
 package com.lisowski.clientapp.activities
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.drawable.Drawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -16,12 +22,11 @@ import com.google.android.gms.maps.model.*
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.maps.android.PolyUtil
 import com.lisowski.clientapp.API.ApiClient
+import com.lisowski.clientapp.Constants.COMPLETE
 import com.lisowski.clientapp.Constants.RIDE_DETAIL
 import com.lisowski.clientapp.R
 import com.lisowski.clientapp.Utils.SharedPreferencesManager
-import com.lisowski.clientapp.models.Car
-import com.lisowski.clientapp.models.Message
-import com.lisowski.clientapp.models.RideDetailResponse
+import com.lisowski.clientapp.models.*
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -29,7 +34,7 @@ import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_maps.*
 import java.util.concurrent.TimeUnit
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolylineClickListener {
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     enum class TimerState {
         Stopped, Paused, Running
@@ -49,7 +54,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
     private var driverId: Long = -1
     private var rideId: Long = -1
     private var driverMarker: Marker? = null
-    private lateinit var driverPolyline : Polyline
+    private lateinit var driverPolyline: Polyline
+    private lateinit var userPolyline: Polyline
     private lateinit var car: Car
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,6 +80,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
         initDisposableLoc()
         initDisposableRideStatus()
         hideConfirmCard()
+        hidePaymentCard()
+        hideRateCard()
 
         confirmArriveBnt.setOnClickListener {
             confirmDriverArrive()
@@ -81,13 +89,57 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
             hideConfirmCard()
             hideTimeCounterCard()
             removeDriverPolyLine()
+            changeWidthUserPolyline()
+        }
+        confirmPaymentBnt.setOnClickListener {
+            hidePaymentCard()
+            setRideStatusToComplete()
+            showRateCard()
+        }
+        rateBnt.setOnClickListener {
+            var id = 0
+            if (radio_button_1.isChecked) id = 1
+            if (radio_button_2.isChecked) id = 2
+            if (radio_button_3.isChecked) id = 3
+            if (radio_button_4.isChecked) id = 4
+            if (radio_button_5.isChecked) id = 5
+            Log.d(MAPS_ACTIVITY, "onCreate: checkedRadioButtonId: $id")
+            saveRideRating(id)
+            startOrderActivity()
+            showToast()
         }
     }
 
-    private fun removeDriverPolyLine() {
-        driverPolyline.remove()
+    private fun changeWidthUserPolyline() {
+        userPolyline.width = 15F
     }
 
+    private fun showToast() {
+        Toast.makeText(applicationContext, "Ocena zapisana", Toast.LENGTH_LONG)
+            .show()
+    }
+
+    private fun startOrderActivity() {
+        val intent = Intent(applicationContext, OrderActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        intent.putExtra(RIDE_DETAIL, details)
+        startActivity(intent)
+    }
+
+    private fun saveRideRating(rate: Int) {
+        Log.d(MAPS_ACTIVITY, "saveRideRating: rate $rate")
+        val observable = apiClient.getApiService()
+            .setRideRating(
+                token = "Bearer ${sessionManager.fetchAuthToken()}",
+                request = RideRating(id = rideId, rate = rate)
+            )
+        val subscribe = observable.observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe({ response -> statusOnResponse(response) }, { t -> onFailure(t) })
+    }
+
+
+    @SuppressLint("UseCompatLoadingForDrawables")
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
@@ -95,29 +147,62 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
         val userMarker = LatLng(userLoc[0], userLoc[1])
         val userLocDest: List<Double> = details.userDestination.split(",").map { it.toDouble() }
         val userDest = LatLng(userLocDest[0], userLocDest[1])
-        mMap.addMarker(MarkerOptions().position(userMarker).title("Punkt początkowy"))
-        mMap.addMarker(MarkerOptions().position(userDest).title("Punkt docelowy"))
+
+        val startMarkerDrawable: Drawable = resources.getDrawable(R.drawable.start_marker)
+        val startIcon: BitmapDescriptor = getMarkerIconFromDrawable(startMarkerDrawable)
+        val endMarkerDrawable: Drawable = resources.getDrawable(R.drawable.flag)
+        val endIcon: BitmapDescriptor = getMarkerIconFromDrawable(endMarkerDrawable)
+
+        mMap.addMarker(
+            MarkerOptions().position(userMarker).title("Punkt początkowy").icon(startIcon)
+        )
+        mMap.addMarker(MarkerOptions().position(userDest).title("Punkt docelowy").icon(endIcon))
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userMarker, 13f))
 
-        val userPolyline = googleMap.addPolyline(
+        userPolyline = googleMap.addPolyline(
             PolylineOptions()
                 .clickable(true)
                 .addAll(decodePolyline(details.userPolyline))
                 .color(Color.BLUE)
                 .width(5F)
         )
-        userPolyline.tag = "userPoly"
 
         driverPolyline = googleMap.addPolyline(
             PolylineOptions()
                 .clickable(true)
                 .addAll(decodePolyline(details.driverPolyline))
                 .color(Color.RED)
-                .width(5F)
+                .width(15F)
         )
-        driverPolyline.tag = "driverPoly"
 
-        googleMap.setOnPolylineClickListener(this)
+    }
+
+    private fun getMarkerIconFromDrawable(drawable: Drawable): BitmapDescriptor {
+        val canvas: Canvas = Canvas()
+        val bitmap: Bitmap = Bitmap.createBitmap(
+            drawable.intrinsicWidth,
+            drawable.intrinsicHeight,
+            Bitmap.Config.ARGB_8888
+        )
+        canvas.setBitmap(bitmap)
+        drawable.setBounds(0, 0, drawable.intrinsicWidth, drawable.intrinsicHeight)
+        drawable.draw(canvas);
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
+    }
+
+    private fun setRideStatusToComplete() {
+        val observable = apiClient.getApiService()
+            .setRideToComplete(
+                token = "Bearer ${sessionManager.fetchAuthToken()}",
+                request = StatusMessage(id = rideId, status = COMPLETE)
+            )
+        val subscribe = observable.observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe({ response -> statusOnResponse(response) }, { t -> onFailure(t) })
+    }
+
+    private fun removeDriverPolyLine() {
+        driverPolyline.remove()
     }
 
     private fun getCarInfo(idDriver: Long) {
@@ -137,6 +222,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
         carRegNumTV.text = car.registrationNumber
     }
 
+    private fun showRateCard() {
+        rateCard.visibility = View.VISIBLE
+    }
+
+    private fun hideRateCard() {
+        rateCard.visibility = View.GONE
+    }
+
     private fun confirmDriverArrive() {
         val observable = apiClient.getApiService()
             .confirmDriverArrive(
@@ -147,6 +240,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
             .subscribeOn(Schedulers.io())
             .subscribe({ response -> statusOnResponse(response) }, { t -> onFailure(t) })
     }
+
     private fun getPriceRequest() {
         val observable = apiClient.getApiService()
             .getPriceForRide(
@@ -159,8 +253,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
     }
 
     private fun getPriceFromResponse(response: Message?) {
-        //TODO: wyświetlic banerz buttonem
+        if (response != null) {
+            showPriceCard(response.msg)
+        }
         Log.d(MAPS_ACTIVITY, "getPriceFromResponse: $response")
+    }
+
+    private fun showPriceCard(msg: String) {
+        payCard.visibility = View.VISIBLE
+        finalPriceTV.text = msg
     }
 
     private fun initDisposableRideStatus() {
@@ -206,9 +307,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
             disposableRideStatus.dispose()
         }
         if (response.msg == "ENDING") {
-            //TODO zatrzymac sprawdzaie STATUSU  wyświetli się okno z info ile do zapłaty. KLIK ZAPłać /setStatus a potemjak chce wystaw ocene /setRating
             getPriceRequest()
+            stopCheckingLocationAndStatus()
         }
+    }
+
+    private fun stopCheckingLocationAndStatus() {
+        disposableRideStatus.dispose()
+        disposableLoc.dispose()
     }
 
     private fun changeInfoOnTimeCounterCard() {
@@ -223,6 +329,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
     private fun hideConfirmCard() {
         confirmArriveCard.visibility = View.GONE
     }
+
+    private fun hidePaymentCard() {
+        payCard.visibility = View.GONE
+    }
+
     private fun hideTimeCounterCard() {
         timeCounterCard.visibility = View.GONE
     }
@@ -254,8 +365,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
             val driverLoc: List<Double> = response.msg.split(",").map { it.toDouble() }
             val userMarker = LatLng(driverLoc[0], driverLoc[1])
             if (driverMarker == null) {
+                val carMarkerDrawable: Drawable = resources.getDrawable(R.drawable.ic_action_name)
+                val carIcon: BitmapDescriptor = getMarkerIconFromDrawable(carMarkerDrawable)
                 driverMarker =
-                    mMap.addMarker(MarkerOptions().position(userMarker).title("Kierowca"))
+                    mMap.addMarker(
+                        MarkerOptions().position(userMarker).title("Kierowca").icon(carIcon)
+                    )
             } else
                 driverMarker!!.position = userMarker
         }
@@ -315,17 +430,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnPolyli
     }
 
 
-
     private fun decodePolyline(polyline: String): List<LatLng> {
         return PolyUtil.decode(polyline)
     }
 
-    override fun onPolylineClick(poly: Polyline?) {
-        if (poly?.width == 5f)
-            poly.width = 15f
-        else
-            poly?.width = 5f
-    }
 
     private fun startTimer() {
         timerState = TimerState.Running

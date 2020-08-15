@@ -2,6 +2,7 @@ package com.lisowski.server.api;
 
 import com.lisowski.server.DTO.RideDTO;
 import com.lisowski.server.DTO.request.ConfirmRide;
+import com.lisowski.server.DTO.request.RideRating;
 import com.lisowski.server.DTO.request.RideRequest;
 import com.lisowski.server.DTO.request.StatusMessage;
 import com.lisowski.server.DTO.response.Message;
@@ -86,5 +87,9 @@ public class RideController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rides not found");
     }
 
+    @PutMapping("/setRideRate")
+    public ResponseEntity<Message> setRideRate(@Valid @RequestBody RideRating request) {
+        return ResponseEntity.ok(rideService.setRideRate(request));
+    }
 
 }

@@ -65,4 +65,10 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Body request: StatusMessage
     ): Observable<Message>
+
+    @PUT(Constants.RIDE_RATE)
+    fun setRideRating(
+        @Header("Authorization") token: String,
+        @Body request: RideRating
+    ): Observable<Message>
 }

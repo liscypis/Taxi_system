@@ -3,6 +3,7 @@ package com.lisowski.server.services;
 import com.lisowski.server.DTO.DriverPositionHistoryDTO;
 import com.lisowski.server.DTO.RideDTO;
 import com.lisowski.server.DTO.request.ConfirmRide;
+import com.lisowski.server.DTO.request.RideRating;
 import com.lisowski.server.DTO.request.RideRequest;
 import com.lisowski.server.DTO.request.StatusMessage;
 import com.lisowski.server.DTO.response.DriverInfoResponse;
@@ -253,5 +254,12 @@ public class RideService {
     public List<RideDTO> getUserRides(Long userId) {
         Optional<List<Ride>> listOfRides = rideRepository.findByUser_IdAndRideStatus(userId, ERideStatus.COMPLETE.name());
         return listOfRides.map(rides -> rides.stream().map(RideDTO::new).collect(Collectors.toList())).orElse(null);
+    }
+
+    public Message setRideRate(RideRating request) {
+        Ride ride = rideRepository.findById(request.getId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ride not found"));
+        ride.getRideDetails().setRating(request.getRate());
+        rideRepository.save(ride);
+        return new Message("Rating saved successfully.");
     }
 }
