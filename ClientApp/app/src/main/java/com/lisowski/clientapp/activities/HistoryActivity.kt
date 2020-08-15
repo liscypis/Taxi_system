@@ -1,10 +1,12 @@
 package com.lisowski.clientapp.activities
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.lisowski.clientapp.API.ApiClient
+import com.lisowski.clientapp.Constants
 import com.lisowski.clientapp.R
 import com.lisowski.clientapp.Utils.SharedPreferencesManager
 import com.lisowski.clientapp.adapters.HistoryRecycleAdapter
@@ -20,7 +22,7 @@ import java.time.temporal.ChronoUnit
 import java.util.*
 
 
-class HistoryActivity : AppCompatActivity() {
+class HistoryActivity : AppCompatActivity(), HistoryRecycleAdapter.OnItemClickListener {
     private lateinit var apiClient: ApiClient
     private lateinit var sessionManager: SharedPreferencesManager
     private lateinit var userHistory: ArrayList<RideDetails>
@@ -59,9 +61,21 @@ class HistoryActivity : AppCompatActivity() {
         Log.d(HISTORY_ACTIVITY, "onResponse: size ${userHistory.size}")
 
 
-        historyRV.adapter = HistoryRecycleAdapter(userHistory)
+        historyRV.adapter = HistoryRecycleAdapter(userHistory,this)
         historyRV.layoutManager = LinearLayoutManager(this)
         historyRV.setHasFixedSize(true)
+    }
+
+    override fun onItemClick(position: Int) {
+        val userLocation: String = userHistory[position].userLocation
+        val userDestination :String = userHistory[position].userDestination
+        val userPolyline :String = userHistory[position].userPolyline
+
+        val intent = Intent(applicationContext, MapsActivity::class.java)
+        intent.putExtra(Constants.USER_LOC, userLocation)
+        intent.putExtra(Constants.USER_DEST, userDestination)
+        intent.putExtra(Constants.USER_POLYLINE, userPolyline)
+        startActivity(intent)
     }
 
 }

@@ -23,6 +23,9 @@ import com.google.maps.android.PolyUtil
 import com.lisowski.clientapp.API.ApiClient
 import com.lisowski.clientapp.Constants.COMPLETE
 import com.lisowski.clientapp.Constants.RIDE_DETAIL
+import com.lisowski.clientapp.Constants.USER_DEST
+import com.lisowski.clientapp.Constants.USER_LOC
+import com.lisowski.clientapp.Constants.USER_POLYLINE
 import com.lisowski.clientapp.R
 import com.lisowski.clientapp.Utils.SharedPreferencesManager
 import com.lisowski.clientapp.models.*
@@ -56,6 +59,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var driverPolyline: Polyline
     private lateinit var userPolyline: Polyline
     private lateinit var car: Car
+    private var fromHistory = true
+    private lateinit var userDestFromHist :String
+    private lateinit var userLocFromHist :String
+    private lateinit var userPolyFromHist :String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,16 +75,30 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         apiClient = ApiClient()
         sessionManager = SharedPreferencesManager(this)
 
-        details = intent.getParcelableExtra(RIDE_DETAIL)!!
+        val getDetails : RideDetailResponse? = intent.getParcelableExtra(RIDE_DETAIL)
+        if(getDetails != null){
+            fromHistory = false
+            details = getDetails
+            Log.d(MAPS_ACTIVITY, "onCreate: $details")
+        }
+        userDestFromHist = intent.getStringExtra(USER_DEST)!!
+        userLocFromHist = intent.getStringExtra(USER_LOC)!!
+        userPolyFromHist = intent.getStringExtra(USER_POLYLINE)!!
 
-        Log.d(MAPS_ACTIVITY, "onCreate: $details")
-        timeLeftInMs *= details.driverDuration
 
-        getCarInfo(details.idDriver)
-        saveRideIdAndDriverIdInSP()
-        startTimer()
-        initDisposableLoc()
-        initDisposableRideStatus()
+
+
+        if(!fromHistory){
+            getCarInfo(details.idDriver)
+            saveRideIdAndDriverIdInSP()
+            startTimer()
+            initDisposableLoc()
+            initDisposableRideStatus()
+            timeLeftInMs *= details.driverDuration
+        } else{
+            hideTimeCounterCard()
+        }
+
         hideConfirmCard()
         hidePaymentCard()
         hideRateCard()
@@ -110,54 +131,91 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
     override fun onResume() {
         super.onResume()
-        val timerStateId = sessionManager.fetchTimeState()!!
+        if(!fromHistory) {
+            val timerStateId = sessionManager.fetchTimeState()!!
 
-        if (timerStateId > -1)
-            timerState = TimerState.values()[timerStateId]
+            if (timerStateId > -1)
+                timerState = TimerState.values()[timerStateId]
 
-        if (timerState == TimerState.Paused) {
-            timeLeftInMs = sessionManager.fetchTimeLeft()!!
-            val pausedTime = sessionManager.fetchPausedTime()!!
-            if (timeLeftInMs > 0 && pausedTime > 0) {
-                val difference = System.currentTimeMillis() - pausedTime
-                if (timeLeftInMs - difference > 0) {
-                    timeLeftInMs -= difference
-                    startTimer()
-                } else
-                    minCounterTV.text = "0 min"
+            if (timerState == TimerState.Paused) {
+                timeLeftInMs = sessionManager.fetchTimeLeft()!!
+                val pausedTime = sessionManager.fetchPausedTime()!!
+                if (timeLeftInMs > 0 && pausedTime > 0) {
+                    val difference = System.currentTimeMillis() - pausedTime
+                    if (timeLeftInMs - difference > 0) {
+                        timeLeftInMs -= difference
+                        startTimer()
+                    } else
+                        minCounterTV.text = "0 min"
+                }
+            }
+
+            loadDriverIDandRideIDfromSP()
+
+            if (disposableLoc.isDisposed) {
+                initDisposableLoc()
+            }
+            if (disposableRideStatus.isDisposed) {
+                initDisposableRideStatus()
             }
         }
 
-        loadDriverIDandRideIDfromSP()
-
-        if (disposableLoc.isDisposed) {
-            initDisposableLoc()
-        }
-        if (disposableRideStatus.isDisposed) {
-            initDisposableRideStatus()
-        }
     }
     override fun onPause() {
         super.onPause()
-        if (timerState == TimerState.Running) {
-            stopTimer()
-            sessionManager.saveTimerData(
-                timeLeft = timeLeftInMs,
-                pausedTime = System.currentTimeMillis(),
-                timerState = TimerState.Paused
-            )
+        if(!fromHistory){
+            if (timerState == TimerState.Running) {
+                stopTimer()
+                sessionManager.saveTimerData(
+                    timeLeft = timeLeftInMs,
+                    pausedTime = System.currentTimeMillis(),
+                    timerState = TimerState.Paused
+                )
+            }
+            disposableLoc.dispose()
+            disposableRideStatus.dispose()
         }
-        disposableLoc.dispose()
-        disposableRideStatus.dispose()
+
     }
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        val userLoc: List<Double> = details.userLocation.split(",").map { it.toDouble() }
-        val userMarker = LatLng(userLoc[0], userLoc[1])
-        val userLocDest: List<Double> = details.userDestination.split(",").map { it.toDouble() }
-        val userDest = LatLng(userLocDest[0], userLocDest[1])
+        val userLoc: List<Double>
+        val userLocDest: List<Double>
+        if(!fromHistory) {
+             userLoc =  details.userLocation.split(",").map { it.toDouble() }
+             userLocDest = details.userDestination.split(",").map { it.toDouble() }
 
+            userPolyline = googleMap.addPolyline(
+                PolylineOptions()
+                    .clickable(true)
+                    .addAll(decodePolyline(details.userPolyline))
+                    .color(Color.BLUE)
+                    .width(5F)
+            )
+
+            driverPolyline = googleMap.addPolyline(
+                PolylineOptions()
+                    .clickable(true)
+                    .addAll(decodePolyline(details.driverPolyline))
+                    .color(Color.RED)
+                    .width(15F)
+            )
+
+        }else{
+            userLoc =  userLocFromHist.split(",").map { it.toDouble() }
+            userLocDest = userDestFromHist.split(",").map { it.toDouble() }
+            userPolyline = googleMap.addPolyline(
+                PolylineOptions()
+                    .clickable(true)
+                    .addAll(decodePolyline(userPolyFromHist))
+                    .color(Color.BLUE)
+                    .width(15F)
+            )
+        }
+
+        val userMarker = LatLng(userLoc[0], userLoc[1])
+        val userDest = LatLng(userLocDest[0], userLocDest[1])
         val startMarkerDrawable: Drawable = resources.getDrawable(R.drawable.start_marker)
         val startIcon: BitmapDescriptor = getMarkerIconFromDrawable(startMarkerDrawable)
         val endMarkerDrawable: Drawable = resources.getDrawable(R.drawable.flag)
@@ -169,21 +227,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.addMarker(MarkerOptions().position(userDest).title("Punkt docelowy").icon(endIcon))
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userMarker, 13f))
 
-        userPolyline = googleMap.addPolyline(
-            PolylineOptions()
-                .clickable(true)
-                .addAll(decodePolyline(details.userPolyline))
-                .color(Color.BLUE)
-                .width(5F)
-        )
 
-        driverPolyline = googleMap.addPolyline(
-            PolylineOptions()
-                .clickable(true)
-                .addAll(decodePolyline(details.driverPolyline))
-                .color(Color.RED)
-                .width(15F)
-        )
 
     }
 

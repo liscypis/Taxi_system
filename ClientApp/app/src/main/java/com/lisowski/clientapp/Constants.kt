@@ -22,5 +22,8 @@ object Constants {
     const val RIDE_DETAIL = "ride_detail"
 
     const val COMPLETE = "complete"
+    const val USER_LOC = "user_loc"
+    const val USER_DEST = "user_dest"
+    const val USER_POLYLINE = "user_polyline"
 
 }

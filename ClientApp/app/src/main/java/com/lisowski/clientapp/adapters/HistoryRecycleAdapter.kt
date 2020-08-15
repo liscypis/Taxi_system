@@ -17,7 +17,10 @@ import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.collections.ArrayList
 
-class HistoryRecycleAdapter(private val rides: ArrayList<RideDetails>) :
+class HistoryRecycleAdapter(
+    private val rides: ArrayList<RideDetails>,
+    private val listener: OnItemClickListener
+) :
     RecyclerView.Adapter<HistoryRecycleAdapter.HistoryViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HistoryViewHolder {
@@ -49,10 +52,25 @@ class HistoryRecycleAdapter(private val rides: ArrayList<RideDetails>) :
     override fun getItemCount() = rides.size
 
 
-    class HistoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class HistoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
+        View.OnClickListener {
         val time: TextView = itemView.historyTimeTV
         val price: TextView = itemView.historyPriceTV
         val rate: TextView = itemView.historyRatingTV
         val date: TextView = itemView.dateTV
+
+        init{
+            itemView.setOnClickListener(this)
+        }
+
+        override fun onClick(p0: View?) {
+            val position :Int = adapterPosition
+            if(position != RecyclerView.NO_POSITION){
+                listener.onItemClick(position)
+            }
+        }
+    }
+    interface OnItemClickListener {
+        fun onItemClick(position: Int)
     }
 }
