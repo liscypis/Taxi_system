@@ -71,4 +71,11 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Body request: RideRating
     ): Observable<Message>
+
+    @GET(Constants.GET_HISTORY)
+    fun getHistory(
+        @Header("Authorization") token: String,
+        @Path("id_user")
+        id_ride: Long
+    ): Observable<List<RideDetails>>
 }

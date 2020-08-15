@@ -1,5 +1,6 @@
 package com.lisowski.server.api;
 
+import com.google.gson.Gson;
 import com.lisowski.server.DTO.RideDTO;
 import com.lisowski.server.DTO.request.ConfirmRide;
 import com.lisowski.server.DTO.request.RideRating;
@@ -79,12 +80,17 @@ public class RideController {
     }
 
     @GetMapping("/getUserRidesByUserId/{id_user}")
-    public ResponseEntity<List<RideDTO>> getUserRidesById(@PathVariable("id_user") Long id) {
+    public ResponseEntity<?> getUserRidesById(@PathVariable("id_user") Long id) {
         List<RideDTO> rideDTOList = rideService.getUserRides(id);
-        if(rideDTOList != null)
+        if(rideDTOList != null){
+            System.out.println("funguje?");
             return ResponseEntity.ok(rideDTOList);
-        else
+        }
+        else{
+            System.out.println("nie funguje?");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rides not found");
+        }
+
     }
 
     @PutMapping("/setRideRate")

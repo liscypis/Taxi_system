@@ -15,6 +15,7 @@ object Constants {
     const val GET_PRICE = "test/getPriceForRide/{id_ride}"
     const val COMPLETE_RIDE = "test/setRideStatus"
     const val RIDE_RATE = "test/setRideRate"
+    const val GET_HISTORY = "test/getUserRidesByUserId/{id_user}"
 
 
 

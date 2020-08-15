@@ -1,6 +1,5 @@
 package com.lisowski.clientapp.activities
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -109,37 +108,48 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             showToast()
         }
     }
+    override fun onResume() {
+        super.onResume()
+        val timerStateId = sessionManager.fetchTimeState()!!
 
-    private fun changeWidthUserPolyline() {
-        userPolyline.width = 15F
+        if (timerStateId > -1)
+            timerState = TimerState.values()[timerStateId]
+
+        if (timerState == TimerState.Paused) {
+            timeLeftInMs = sessionManager.fetchTimeLeft()!!
+            val pausedTime = sessionManager.fetchPausedTime()!!
+            if (timeLeftInMs > 0 && pausedTime > 0) {
+                val difference = System.currentTimeMillis() - pausedTime
+                if (timeLeftInMs - difference > 0) {
+                    timeLeftInMs -= difference
+                    startTimer()
+                } else
+                    minCounterTV.text = "0 min"
+            }
+        }
+
+        loadDriverIDandRideIDfromSP()
+
+        if (disposableLoc.isDisposed) {
+            initDisposableLoc()
+        }
+        if (disposableRideStatus.isDisposed) {
+            initDisposableRideStatus()
+        }
     }
-
-    private fun showToast() {
-        Toast.makeText(applicationContext, "Ocena zapisana", Toast.LENGTH_LONG)
-            .show()
-    }
-
-    private fun startOrderActivity() {
-        val intent = Intent(applicationContext, OrderActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        intent.putExtra(RIDE_DETAIL, details)
-        startActivity(intent)
-    }
-
-    private fun saveRideRating(rate: Int) {
-        Log.d(MAPS_ACTIVITY, "saveRideRating: rate $rate")
-        val observable = apiClient.getApiService()
-            .setRideRating(
-                token = "Bearer ${sessionManager.fetchAuthToken()}",
-                request = RideRating(id = rideId, rate = rate)
+    override fun onPause() {
+        super.onPause()
+        if (timerState == TimerState.Running) {
+            stopTimer()
+            sessionManager.saveTimerData(
+                timeLeft = timeLeftInMs,
+                pausedTime = System.currentTimeMillis(),
+                timerState = TimerState.Paused
             )
-        val subscribe = observable.observeOn(AndroidSchedulers.mainThread())
-            .subscribeOn(Schedulers.io())
-            .subscribe({ response -> statusOnResponse(response) }, { t -> onFailure(t) })
+        }
+        disposableLoc.dispose()
+        disposableRideStatus.dispose()
     }
-
-
-    @SuppressLint("UseCompatLoadingForDrawables")
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
@@ -190,6 +200,35 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
+    private fun locationResponse(response: Message?) {
+        if (response != null) {
+            Log.d(MAPS_ACTIVITY, "locationResponse: ${response.msg} ")
+            val driverLoc: List<Double> = response.msg.split(",").map { it.toDouble() }
+            val userMarker = LatLng(driverLoc[0], driverLoc[1])
+            if (driverMarker == null) {
+                val carMarkerDrawable: Drawable = resources.getDrawable(R.drawable.ic_action_name)
+                val carIcon: BitmapDescriptor = getMarkerIconFromDrawable(carMarkerDrawable)
+                driverMarker =
+                    mMap.addMarker(
+                        MarkerOptions().position(userMarker).title("Kierowca").icon(carIcon)
+                    )
+            } else
+                driverMarker!!.position = userMarker
+        }
+    }
+
+    private fun saveRideRating(rate: Int) {
+        Log.d(MAPS_ACTIVITY, "saveRideRating: rate $rate")
+        val observable = apiClient.getApiService()
+            .setRideRating(
+                token = "Bearer ${sessionManager.fetchAuthToken()}",
+                request = RideRating(id = rideId, rate = rate)
+            )
+        val subscribe = observable.observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe({ response -> statusOnResponse(response) }, { t -> onFailure(t) })
+    }
+
     private fun setRideStatusToComplete() {
         val observable = apiClient.getApiService()
             .setRideToComplete(
@@ -199,10 +238,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val subscribe = observable.observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
             .subscribe({ response -> statusOnResponse(response) }, { t -> onFailure(t) })
-    }
-
-    private fun removeDriverPolyLine() {
-        driverPolyline.remove()
     }
 
     private fun getCarInfo(idDriver: Long) {
@@ -222,12 +257,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         carRegNumTV.text = car.registrationNumber
     }
 
-    private fun showRateCard() {
-        rateCard.visibility = View.VISIBLE
-    }
-
-    private fun hideRateCard() {
-        rateCard.visibility = View.GONE
+    private fun startOrderActivity() {
+        val intent = Intent(applicationContext, OrderActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        intent.putExtra(RIDE_DETAIL, details)
+        startActivity(intent)
     }
 
     private fun confirmDriverArrive() {
@@ -252,17 +286,38 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             .subscribe({ response -> getPriceFromResponse(response) }, { t -> onFailure(t) })
     }
 
-    private fun getPriceFromResponse(response: Message?) {
-        if (response != null) {
-            showPriceCard(response.msg)
-        }
-        Log.d(MAPS_ACTIVITY, "getPriceFromResponse: $response")
+    private fun callRideStatus() {
+        Log.d(MAPS_ACTIVITY, "callRideStatus: ride id $rideId")
+        val observable = apiClient.getApiService()
+            .getRideStatus(token = "Bearer ${sessionManager.fetchAuthToken()}", rideId = rideId)
+        val subscribe = observable.observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe({ response -> statusOnResponse(response) }, { t -> onFailure(t) })
     }
 
-    private fun showPriceCard(msg: String) {
-        payCard.visibility = View.VISIBLE
-        finalPriceTV.text = msg
+    private fun statusOnResponse(response: Message?) {
+        Log.d(MAPS_ACTIVITY, "statusOnResponse: $response")
+        if (response!!.msg == "WAITING_FOR_USER") {
+            showDialog()
+            showConfirmCard()
+            changeInfoOnTimeCounterCard()
+            disposableRideStatus.dispose()
+        }
+        if (response.msg == "ENDING") {
+            getPriceRequest()
+            stopCheckingLocationAndStatus()
+        }
     }
+
+    private fun callDriverPosition() {
+        val observable = apiClient.getApiService()
+            .getDriverLoc(token = "Bearer ${sessionManager.fetchAuthToken()}", driverID = driverId)
+        val subscribe = observable.observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe({ response -> locationResponse(response) }, { t -> onFailure(t) })
+    }
+
+
 
     private fun initDisposableRideStatus() {
         disposableRideStatus = Observable.interval(
@@ -289,137 +344,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         sessionManager.saveRideId(rideId)
     }
 
-    private fun callRideStatus() {
-        Log.d(MAPS_ACTIVITY, "callRideStatus: ride id $rideId")
-        val observable = apiClient.getApiService()
-            .getRideStatus(token = "Bearer ${sessionManager.fetchAuthToken()}", rideId = rideId)
-        val subscribe = observable.observeOn(AndroidSchedulers.mainThread())
-            .subscribeOn(Schedulers.io())
-            .subscribe({ response -> statusOnResponse(response) }, { t -> onFailure(t) })
-    }
-
-    private fun statusOnResponse(response: Message?) {
-        Log.d(MAPS_ACTIVITY, "statusOnResponse: $response")
-        if (response!!.msg == "WAITING_FOR_USER") {
-            showDialog()
-            showConfirmCard()
-            changeInfoOnTimeCounterCard()
-            disposableRideStatus.dispose()
-        }
-        if (response.msg == "ENDING") {
-            getPriceRequest()
-            stopCheckingLocationAndStatus()
-        }
-    }
-
-    private fun stopCheckingLocationAndStatus() {
-        disposableRideStatus.dispose()
-        disposableLoc.dispose()
-    }
-
-    private fun changeInfoOnTimeCounterCard() {
-        infoCounterTV.text = "Kierowca czeka na Ciebie"
-        minCounterTV.text = " "
-    }
-
-    private fun showConfirmCard() {
-        confirmArriveCard.visibility = View.VISIBLE
-    }
-
-    private fun hideConfirmCard() {
-        confirmArriveCard.visibility = View.GONE
-    }
-
-    private fun hidePaymentCard() {
-        payCard.visibility = View.GONE
-    }
-
-    private fun hideTimeCounterCard() {
-        timeCounterCard.visibility = View.GONE
-    }
-
-    private fun showDialog() {
-        MaterialAlertDialogBuilder(context)
-            .setTitle("Kierowca czeka na Ciebie")
-            .setPositiveButton("OK") { _, _ ->
-                // Respond to positive button press
-            }
-            .show()
-    }
-
-    private fun callDriverPosition() {
-        val observable = apiClient.getApiService()
-            .getDriverLoc(token = "Bearer ${sessionManager.fetchAuthToken()}", driverID = driverId)
-        val subscribe = observable.observeOn(AndroidSchedulers.mainThread())
-            .subscribeOn(Schedulers.io())
-            .subscribe({ response -> locationResponse(response) }, { t -> onFailure(t) })
-    }
-
-    private fun onFailure(t: Throwable?) {
-        Log.d(MAPS_ACTIVITY, "onFailure: ${t!!.message}")
-    }
-
-    private fun locationResponse(response: Message?) {
-        if (response != null) {
-            Log.d(MAPS_ACTIVITY, "locationResponse: ${response.msg} ")
-            val driverLoc: List<Double> = response.msg.split(",").map { it.toDouble() }
-            val userMarker = LatLng(driverLoc[0], driverLoc[1])
-            if (driverMarker == null) {
-                val carMarkerDrawable: Drawable = resources.getDrawable(R.drawable.ic_action_name)
-                val carIcon: BitmapDescriptor = getMarkerIconFromDrawable(carMarkerDrawable)
-                driverMarker =
-                    mMap.addMarker(
-                        MarkerOptions().position(userMarker).title("Kierowca").icon(carIcon)
-                    )
-            } else
-                driverMarker!!.position = userMarker
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        if (timerState == TimerState.Running) {
-            stopTimer()
-            sessionManager.saveTimerData(
-                timeLeft = timeLeftInMs,
-                pausedTime = System.currentTimeMillis(),
-                timerState = TimerState.Paused
-            )
-        }
-        disposableLoc.dispose()
-        disposableRideStatus.dispose()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        val timerStateId = sessionManager.fetchTimeState()!!
-
-        if (timerStateId > -1)
-            timerState = TimerState.values()[timerStateId]
-
-        if (timerState == TimerState.Paused) {
-            timeLeftInMs = sessionManager.fetchTimeLeft()!!
-            val pausedTime = sessionManager.fetchPausedTime()!!
-            if (timeLeftInMs > 0 && pausedTime > 0) {
-                val difference = System.currentTimeMillis() - pausedTime
-                if (timeLeftInMs - difference > 0) {
-                    timeLeftInMs -= difference
-                    startTimer()
-                } else
-                    minCounterTV.text = "0 min"
-            }
-        }
-
-        loadDriverIDandRideIDfromSP()
-
-        if (disposableLoc.isDisposed) {
-            initDisposableLoc()
-        }
-        if (disposableRideStatus.isDisposed) {
-            initDisposableRideStatus()
-        }
-    }
-
     private fun loadDriverIDandRideIDfromSP() {
         val id = sessionManager.fetchDriverId()!!
         if (id != -1L)
@@ -428,12 +352,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         if (rideID != -1L)
             rideId = rideID
     }
-
-
-    private fun decodePolyline(polyline: String): List<LatLng> {
-        return PolyUtil.decode(polyline)
-    }
-
 
     private fun startTimer() {
         timerState = TimerState.Running
@@ -456,6 +374,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }.start()
     }
 
+    private fun showDialog() {
+        MaterialAlertDialogBuilder(context)
+            .setTitle("Kierowca czeka na Ciebie")
+            .setPositiveButton("OK") { _, _ ->
+                // Respond to positive button press
+            }
+            .show()
+    }
+
     private fun updateTimer() {
         var sec = timeLeftInMs / 60000
         minCounterTV.text = sec.toString()
@@ -463,7 +390,70 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         Log.d(MAPS_ACTIVITY, "updateTimer: $sec")
     }
 
+    private fun getPriceFromResponse(response: Message?) {
+        if (response != null) {
+            showPriceCard(response.msg)
+        }
+        Log.d(MAPS_ACTIVITY, "getPriceFromResponse: $response")
+    }
+
+    private fun showPriceCard(msg: String) {
+        payCard.visibility = View.VISIBLE
+        finalPriceTV.text = msg
+    }
+    private fun stopCheckingLocationAndStatus() {
+        disposableRideStatus.dispose()
+        disposableLoc.dispose()
+    }
+
+    private fun changeInfoOnTimeCounterCard() {
+        infoCounterTV.text = "Kierowca czeka na Ciebie"
+        minCounterTV.text = " "
+    }
+
+    private fun showConfirmCard() {
+        confirmArriveCard.visibility = View.VISIBLE
+    }
+
+    private fun removeDriverPolyLine() {
+        driverPolyline.remove()
+    }
+
+    private fun hideConfirmCard() {
+        confirmArriveCard.visibility = View.GONE
+    }
+
+    private fun hidePaymentCard() {
+        payCard.visibility = View.GONE
+    }
+
+    private fun hideTimeCounterCard() {
+        timeCounterCard.visibility = View.GONE
+    }
+
+    private fun onFailure(t: Throwable?) {
+        Log.d(MAPS_ACTIVITY, "onFailure: ${t!!.message}")
+    }
+
+    private fun decodePolyline(polyline: String): List<LatLng> {
+        return PolyUtil.decode(polyline)
+    }
     private fun stopTimer() {
         countDownTimer.cancel()
+    }
+    private fun showRateCard() {
+        rateCard.visibility = View.VISIBLE
+    }
+
+    private fun hideRateCard() {
+        rateCard.visibility = View.GONE
+    }
+    private fun changeWidthUserPolyline() {
+        userPolyline.width = 15F
+    }
+
+    private fun showToast() {
+        Toast.makeText(applicationContext, "Ocena zapisana", Toast.LENGTH_LONG)
+            .show()
     }
 }
