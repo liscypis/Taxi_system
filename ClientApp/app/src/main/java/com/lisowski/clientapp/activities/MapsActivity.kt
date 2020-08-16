@@ -413,6 +413,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
             showDialog()
             showConfirmCard()
             changeInfoOnTimeCounterCard()
+            stopTimer()
             disposableRideStatus.dispose()
         }
         if (response.msg == "ENDING") {

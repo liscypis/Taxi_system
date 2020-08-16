@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ClientApp</string>
+    <string name="app_name">LisTaxi</string>
     <string name="login">Zaloguj</string>
     <string name="singup">Zarejestruj</string>
     <string name="order">Zamów</string>
