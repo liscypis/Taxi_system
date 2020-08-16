@@ -82,15 +82,10 @@ public class RideController {
     @GetMapping("/getUserRidesByUserId/{id_user}")
     public ResponseEntity<?> getUserRidesById(@PathVariable("id_user") Long id) {
         List<RideDTO> rideDTOList = rideService.getUserRides(id);
-        if(rideDTOList != null){
-            System.out.println("funguje?");
+        if(rideDTOList != null)
             return ResponseEntity.ok(rideDTOList);
-        }
-        else{
-            System.out.println("nie funguje?");
+        else
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rides not found");
-        }
-
     }
 
     @PutMapping("/setRideRate")

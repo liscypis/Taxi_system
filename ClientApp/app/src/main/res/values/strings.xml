@@ -7,4 +7,6 @@
     <string name="aproxOrderData">Przybliźone dane zamówienia</string>
     <string name="confirm">Potwierdź</string>
     <string name="title_activity_maps">Mapa</string>
+    <string name="open">open</string>
+    <string name="close">close</string>
 </resources>

@@ -10,8 +10,11 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
+import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.core.view.GravityCompat
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -19,6 +22,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.navigation.NavigationView
 import com.google.maps.android.PolyUtil
 import com.lisowski.clientapp.API.ApiClient
 import com.lisowski.clientapp.Constants.COMPLETE
@@ -33,10 +37,14 @@ import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
+import kotlinx.android.synthetic.main.activity_history.*
 import kotlinx.android.synthetic.main.activity_maps.*
+import kotlinx.android.synthetic.main.activity_maps.drawerLayout
+import kotlinx.android.synthetic.main.activity_maps.navigationView
 import java.util.concurrent.TimeUnit
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
+    NavigationView.OnNavigationItemSelectedListener {
 
     enum class TimerState {
         Stopped, Paused, Running
@@ -60,9 +68,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var userPolyline: Polyline
     private lateinit var car: Car
     private var fromHistory = true
-    private lateinit var userDestFromHist :String
-    private lateinit var userLocFromHist :String
-    private lateinit var userPolyFromHist :String
+    private lateinit var userDestFromHist: String
+    private lateinit var userLocFromHist: String
+    private lateinit var userPolyFromHist: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,27 +83,34 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         apiClient = ApiClient()
         sessionManager = SharedPreferencesManager(this)
 
-        val getDetails : RideDetailResponse? = intent.getParcelableExtra(RIDE_DETAIL)
-        if(getDetails != null){
+        //drawerConf
+        initToolBarAndDrawer()
+
+        val getDetails: RideDetailResponse? = intent.getParcelableExtra(RIDE_DETAIL)
+        if (getDetails != null) {
             fromHistory = false
             details = getDetails
             Log.d(MAPS_ACTIVITY, "onCreate: $details")
         }
-        userDestFromHist = intent.getStringExtra(USER_DEST)!!
-        userLocFromHist = intent.getStringExtra(USER_LOC)!!
-        userPolyFromHist = intent.getStringExtra(USER_POLYLINE)!!
 
+        val uDest = intent.getStringExtra(USER_DEST)
+        val uPoly = intent.getStringExtra(USER_POLYLINE)
+        val uLoc = intent.getStringExtra(USER_LOC)
+        if (uDest != null)
+            userDestFromHist = uDest
+        if (uLoc != null)
+            userLocFromHist = uLoc
+        if (uPoly != null)
+            userPolyFromHist = uPoly
 
-
-
-        if(!fromHistory){
+        if (!fromHistory) {
             getCarInfo(details.idDriver)
+            timeLeftInMs *= details.driverDuration
             saveRideIdAndDriverIdInSP()
             startTimer()
             initDisposableLoc()
             initDisposableRideStatus()
-            timeLeftInMs *= details.driverDuration
-        } else{
+        } else {
             hideTimeCounterCard()
         }
 
@@ -129,9 +144,19 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             showToast()
         }
     }
+
+    private fun initToolBarAndDrawer() {
+        setSupportActionBar(findViewById(R.id.toolbar))
+        val drawerToggle = ActionBarDrawerToggle(this, drawerLayout, R.string.open, R.string.close)
+        drawerLayout.addDrawerListener(drawerToggle)
+        drawerToggle.syncState()
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        navigationView.setNavigationItemSelectedListener(this)
+    }
+
     override fun onResume() {
         super.onResume()
-        if(!fromHistory) {
+        if (!fromHistory) {
             val timerStateId = sessionManager.fetchTimeState()!!
 
             if (timerStateId > -1)
@@ -161,9 +186,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
     }
+
     override fun onPause() {
         super.onPause()
-        if(!fromHistory){
+        if (!fromHistory) {
             if (timerState == TimerState.Running) {
                 stopTimer()
                 sessionManager.saveTimerData(
@@ -177,14 +203,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
     }
+
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
         val userLoc: List<Double>
         val userLocDest: List<Double>
-        if(!fromHistory) {
-             userLoc =  details.userLocation.split(",").map { it.toDouble() }
-             userLocDest = details.userDestination.split(",").map { it.toDouble() }
+        if (!fromHistory) {
+            userLoc = details.userLocation.split(",").map { it.toDouble() }
+            userLocDest = details.userDestination.split(",").map { it.toDouble() }
 
             userPolyline = googleMap.addPolyline(
                 PolylineOptions()
@@ -202,8 +229,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     .width(15F)
             )
 
-        }else{
-            userLoc =  userLocFromHist.split(",").map { it.toDouble() }
+        } else {
+            userLoc = userLocFromHist.split(",").map { it.toDouble() }
             userLocDest = userDestFromHist.split(",").map { it.toDouble() }
             userPolyline = googleMap.addPolyline(
                 PolylineOptions()
@@ -226,9 +253,50 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         )
         mMap.addMarker(MarkerOptions().position(userDest).title("Punkt docelowy").icon(endIcon))
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userMarker, 13f))
+    }
 
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        if (fromHistory) {
+            when (item.itemId) {
+                R.id.nav_order -> {
+                    Log.d(MAPS_ACTIVITY, "onNavigationItemSelected: 1")
+                    val intent = Intent(applicationContext, OrderActivity::class.java)
+                    startActivity(intent)
+                }
+                R.id.nav_history -> {
+                    Log.d(MAPS_ACTIVITY, "onNavigationItemSelected: 1")
+                val intent = Intent(applicationContext, HistoryActivity::class.java)
+                startActivity(intent)
+                }
+                R.id.nav_logout -> {
+                    Log.d(MAPS_ACTIVITY, "onNavigationItemSelected: 3")
+                    sessionManager.clear()
+                    val intent = Intent(applicationContext, LoginActivity::class.java)
+                    startActivity(intent)
+                }
+            }
 
+        }
+        drawerLayout.closeDrawer(GravityCompat.START)
+        return true
+    }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                drawerLayout.openDrawer(GravityCompat.START)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    override fun onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START)
+        } else {
+            super.onBackPressed()
+        }
     }
 
     private fun getMarkerIconFromDrawable(drawable: Drawable): BitmapDescriptor {
@@ -362,7 +430,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
 
-
     private fun initDisposableRideStatus() {
         disposableRideStatus = Observable.interval(
             1000, 5000,
@@ -445,6 +512,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         payCard.visibility = View.VISIBLE
         finalPriceTV.text = msg
     }
+
     private fun stopCheckingLocationAndStatus() {
         disposableRideStatus.dispose()
         disposableLoc.dispose()
@@ -482,9 +550,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun decodePolyline(polyline: String): List<LatLng> {
         return PolyUtil.decode(polyline)
     }
+
     private fun stopTimer() {
         countDownTimer.cancel()
     }
+
     private fun showRateCard() {
         rateCard.visibility = View.VISIBLE
     }
@@ -492,6 +562,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun hideRateCard() {
         rateCard.visibility = View.GONE
     }
+
     private fun changeWidthUserPolyline() {
         userPolyline.width = 15F
     }

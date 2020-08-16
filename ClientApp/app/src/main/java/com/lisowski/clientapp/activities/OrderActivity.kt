@@ -6,12 +6,16 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
+import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
 import android.widget.Toast
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.core.view.GravityCompat
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.navigation.NavigationView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.lisowski.clientapp.API.ApiClient
@@ -22,6 +26,7 @@ import com.lisowski.clientapp.Utils.clearError
 import com.lisowski.clientapp.Utils.getApiError
 import com.lisowski.clientapp.adapters.PlaceArrayAdapter
 import com.lisowski.clientapp.models.*
+import kotlinx.android.synthetic.main.activity_history.*
 import kotlinx.android.synthetic.main.activity_order.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -32,7 +37,7 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.*
 
-class OrderActivity : AppCompatActivity() {
+class OrderActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     private var placeAdapter: PlaceArrayAdapter? = null
     private lateinit var mPlacesClient: PlacesClient
     private lateinit var apiClient: ApiClient
@@ -49,6 +54,8 @@ class OrderActivity : AppCompatActivity() {
         setContentView(R.layout.activity_order)
 
         hideCard()
+        //toolbar and drawer
+        initToolBarAndDrawer()
 
         apiClient = ApiClient()
         sessionManager = SharedPreferencesManager(this)
@@ -113,6 +120,56 @@ class OrderActivity : AppCompatActivity() {
 
 
     }
+
+
+    private fun initToolBarAndDrawer() {
+        setSupportActionBar(findViewById(R.id.toolbar))
+        val drawerToggle = ActionBarDrawerToggle(this, drawerLay, R.string.open, R.string.close)
+        drawerLay.addDrawerListener(drawerToggle)
+        drawerToggle.syncState()
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        navigationV.setNavigationItemSelectedListener(this)
+    }
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.nav_order -> {
+                Log.d(ORDER_ACTIVITY, "onNavigationItemSelected: 1")
+//                val intent = Intent(applicationContext, OrderActivity::class.java)
+//                startActivity(intent)
+            }
+            R.id.nav_history -> {
+                Log.d(ORDER_ACTIVITY, "onNavigationItemSelected: 1")
+                val intent = Intent(applicationContext, HistoryActivity::class.java)
+                startActivity(intent)
+            }
+            R.id.nav_logout -> {
+                Log.d(ORDER_ACTIVITY, "onNavigationItemSelected: 3")
+                sessionManager.clear()
+                val intent = Intent(applicationContext, LoginActivity::class.java)
+                startActivity(intent)
+            }
+        }
+        drawerLay.closeDrawer(GravityCompat.START)
+        return true
+    }
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                drawerLay.openDrawer(GravityCompat.START)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+    override fun onBackPressed() {
+        if (drawerLay.isDrawerOpen(GravityCompat.START)) {
+            drawerLay.closeDrawer(GravityCompat.START)
+        } else {
+            super.onBackPressed()
+        }
+    }
+
 
 
     private fun clearErrorTV() {
