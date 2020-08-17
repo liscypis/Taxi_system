@@ -19,7 +19,6 @@ import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
-import androidx.lifecycle.Transformations.map
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -126,6 +125,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
         confirmPaymentBnt.setOnClickListener {
             sendRideStatus(COMPLETE)
             showRateCard()
+            hidePaymentCard()
         }
 
         rateBnt.setOnClickListener {
@@ -139,8 +139,10 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
             saveRideRating(id)
             sendAvStatusAndUpdateInterface()
             showToast()
-            chideRateCard()
+            hideRateCard()
+            return@setOnClickListener
         }
+
         statusBnt.setOnClickListener {
             if (statusRD1.isChecked) status = Status.offline
             if (statusRD2.isChecked) status = Status.Zajęty
@@ -197,6 +199,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
 
                 removeDriverPolyLine()
                 userPolyline.width = 15F
+                return@setOnClickListener
             }
 
             if (rideStatus == "NO_APP") {
@@ -210,18 +213,18 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
             if (rideStatus == "ON_THE_WAY_TO_DEST" && !rideWithApp) {
                 getPriceRequest()
                 hideInfoCard()
+                rideStatus == "end"
+                return@setOnClickListener
             }
             if (rideStatus == "ON_THE_WAY_TO_DEST" && rideWithApp) {
                 sendRideStatus(ENDING)
                 hideInfoCard()
                 sendAvStatusAndUpdateInterface()
+                rideStatus == "end"
+                return@setOnClickListener
             }
 
         }
-    }
-
-    private fun chideRateCard() {
-        rateCard.visibility = View.GONE
     }
 
     private fun sendAvStatusAndUpdateInterface() {
@@ -423,7 +426,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
         }
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
-                Log.d(MAPS_ACTIVITY, "location: ${location.toString()}")
+//                Log.d(MAPS_ACTIVITY, "location: ${location.toString()}")
                 if (location != null) {
                     val loc: LatLng = LatLng(location.latitude, location.longitude)
                     if (previousLocation == null || previousLocation != loc) {
