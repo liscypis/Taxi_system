@@ -79,7 +79,6 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
     private lateinit var uMarker: Marker
     private  lateinit var destinationMarker: Marker
     private var previousLocation: LatLng? = null
-    private var previousLocationToServer: LatLng? = null
 
 
     private val context: Context = this
@@ -140,6 +139,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
             saveRideRating(id)
             sendAvStatusAndUpdateInterface()
             showToast()
+            chideRateCard()
         }
         statusBnt.setOnClickListener {
             if (statusRD1.isChecked) status = Status.offline
@@ -200,9 +200,11 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
             }
 
             if (rideStatus == "NO_APP") {
-                confirmDriverArrive()
                 hideInfoCard()
-
+                confirmDriverArrive()
+                removeDriverPolyLine()
+                userPolyline.width = 15F
+                return@setOnClickListener
             }
 
             if (rideStatus == "ON_THE_WAY_TO_DEST" && !rideWithApp) {
@@ -216,6 +218,10 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
             }
 
         }
+    }
+
+    private fun chideRateCard() {
+        rateCard.visibility = View.GONE
     }
 
     private fun sendAvStatusAndUpdateInterface() {
@@ -560,7 +566,6 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
 
 
     private fun confirmDriverArrive() {
-        rideStatus = "ON_THE_WAY_TO_DEST"
         val observable = apiClient.getApiService()
             .confirmDriverArrive(
                 token = "Bearer ${sessionManager.fetchAuthToken()}",
@@ -569,6 +574,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
         val subscribe = observable.observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
             .subscribe({ response -> statusOnResponse(response) }, { t -> onFailure(t) })
+        rideStatus = "ON_THE_WAY_TO_DEST"
     }
 
     private fun getPriceRequest() {
@@ -594,12 +600,10 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
     private fun statusOnResponse(response: Message?) {
         Log.d(MAPS_ACTIVITY, "statusOnResponse: $response")
         if (response!!.msg == "WAITING_FOR_USER") {
-            //TODO wyswietlic
             rideStatus = response.msg
             showWaitCard()
         }
         if (response.msg == "NO_APP") {
-            //TODO ride z klientem bez apki
             rideWithApp = false
             rideStatus = response.msg
             newRideDialog()
