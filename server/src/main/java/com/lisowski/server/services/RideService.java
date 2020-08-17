@@ -190,10 +190,6 @@ public class RideService {
             ride.setRideStatus(status);
             rideRepository.save(ride);
 
-            if (status.equals("COMPLETE")) {
-                setDriverStatus(ride.getDriver().getId(), EStatus.STATUS_AVAILABLE);
-            }
-
             return ResponseEntity.ok(new Message("Status set successfully"));
         } else
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ride or status not found");

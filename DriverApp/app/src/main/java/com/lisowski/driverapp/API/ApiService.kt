@@ -60,7 +60,7 @@ interface ApiService {
     ): Observable<Message>
 
     @PUT(Constants.COMPLETE_RIDE)
-    fun setRideToComplete(
+    fun setRidestatus(
         @Header("Authorization") token: String,
         @Body request: StatusMessage
     ): Observable<Message>
@@ -84,4 +84,18 @@ interface ApiService {
         @Path("id")
         id: Long
     ): Observable<RideDetailResponse>
+
+    @POST(Constants.ADD_LOCATION)
+    fun addLocation(
+        @Header("Authorization") token: String,
+        @Body request: Location
+    ): Observable<Message>
+
+    @POST(Constants.DRIVER_STATUS)
+    fun setDriverStatus(
+        @Header("Authorization") token: String,
+        @Body request: StatusMessage
+    ): Observable<Message>
+
+
 }

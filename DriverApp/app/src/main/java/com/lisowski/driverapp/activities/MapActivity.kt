@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.location.Location
 import android.os.Bundle
@@ -18,18 +19,24 @@ import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
+import androidx.lifecycle.Transformations.map
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationView
 import com.google.maps.android.PolyUtil
 import com.lisowski.clientapp.API.ApiClient
+import com.lisowski.driverapp.Constants.AVAILABLE
+import com.lisowski.driverapp.Constants.BUSY
 import com.lisowski.driverapp.Constants.COMPLETE
+import com.lisowski.driverapp.Constants.ENDING
+import com.lisowski.driverapp.Constants.OFFLINE
+import com.lisowski.driverapp.Constants.WAITING_FOR_USER
 import com.lisowski.driverapp.R
 import com.lisowski.driverapp.Utils.SharedPreferencesManager
 import com.lisowski.driverapp.models.Message
@@ -44,13 +51,13 @@ import kotlinx.android.synthetic.main.activity_history.drawerLayout
 import kotlinx.android.synthetic.main.activity_history.navigationView
 import kotlinx.android.synthetic.main.activity_map.*
 import java.util.concurrent.TimeUnit
-import kotlin.math.log
 
 class MapActivity : AppCompatActivity(), OnMapReadyCallback,
     NavigationView.OnNavigationItemSelectedListener {
     enum class Status {
         offline, Zajęty, Online
     }
+
 
     private val MAPS_ACTIVITY: String = "MapsActivity"
     private lateinit var mMap: GoogleMap
@@ -67,12 +74,19 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
     private lateinit var driverPolyFromHist: String
     private lateinit var driverPolyline: Polyline
     private lateinit var userPolyline: Polyline
-    private var previousLocation: LatLng? = null
+    private lateinit var rideStatus: String
     private var marker: Marker? = null
+    private lateinit var uMarker: Marker
+    private  lateinit var destinationMarker: Marker
+    private var previousLocation: LatLng? = null
+    private var previousLocationToServer: LatLng? = null
+
+
     private val context: Context = this
     private var driverId: Long = -1
     private var rideId: Long = -1
     private var fromHistory = true
+    private var rideWithApp = true
     private var status: Status = Status.offline
 
 
@@ -96,18 +110,22 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
 
 
         driverId = sessionManager.fetchUserId()!!
+        setDriverStatus(OFFLINE)
+
 
         hideWaitCard()
         hideInfoCard()
         hidePaymentCard()
         hideRateCard()
         hideChangeStatusCard()
+        setInfoIconInvisible()
 
         statusTV.text = status.name
 
 
+
         confirmPaymentBnt.setOnClickListener {
-            setRideStatusToComplete()
+            sendRideStatus(COMPLETE)
             showRateCard()
         }
 
@@ -120,6 +138,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
             if (radio_button_5.isChecked) id = 5
             Log.d(MAPS_ACTIVITY, "onCreate: checkedRadioButtonId: $id")
             saveRideRating(id)
+            sendAvStatusAndUpdateInterface()
             showToast()
         }
         statusBnt.setOnClickListener {
@@ -133,6 +152,101 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
         statusTV.setOnClickListener {
             showChangeStatusCard()
         }
+
+
+        incoIV.setOnClickListener {
+            hideInfoCard()
+        }
+
+        changeStatusIV.setOnClickListener {
+            hideChangeStatusCard()
+        }
+
+        infoIV.setOnClickListener {
+            if (rideStatus == "ON_THE_WAY_TO_CLIENT") {
+                showInfoCard()
+
+                telTV.text = details.userPhone
+                infoBNT.text = "potwierdź przybycie"
+            }
+            if (rideStatus == "ON_THE_WAY_TO_DEST") {
+                hideWaitCard()
+                showInfoCard()
+                telTV.text = details.userPhone
+                infoBNT.text = "Zakończ kurs"
+            }
+
+            if (rideStatus == "WAITING_FOR_USER") {
+                showWaitCard()
+            }
+            if (rideStatus == "NO_APP") {
+                showInfoCard()
+
+                telTV.text = details.userPhone
+                infoBNT.text = "Potwierdź odbiór klienta"
+            }
+
+        }
+        infoBNT.setOnClickListener {
+            if (rideStatus == "ON_THE_WAY_TO_CLIENT") {
+                sendRideStatus(WAITING_FOR_USER)
+                hideInfoCard()
+
+                initDisposableRideStatus()
+                showWaitCard()
+
+                removeDriverPolyLine()
+                userPolyline.width = 15F
+            }
+
+            if (rideStatus == "NO_APP") {
+                confirmDriverArrive()
+                hideInfoCard()
+
+            }
+
+            if (rideStatus == "ON_THE_WAY_TO_DEST" && !rideWithApp) {
+                getPriceRequest()
+                hideInfoCard()
+            }
+            if (rideStatus == "ON_THE_WAY_TO_DEST" && rideWithApp) {
+                sendRideStatus(ENDING)
+                hideInfoCard()
+                sendAvStatusAndUpdateInterface()
+            }
+
+        }
+    }
+
+    private fun sendAvStatusAndUpdateInterface() {
+        setDriverStatus(AVAILABLE)
+        setInfoIconInvisible()
+
+        status = Status.Online
+        statusTV.text = status.name
+        statusTV.isEnabled = true
+        userPolyline.remove()
+        uMarker.remove()
+        destinationMarker.remove()
+    }
+
+    private fun setDriverStatus(status: String) {
+        val observable = apiClient.getApiService()
+            .setDriverStatus(
+                token = "Bearer ${sessionManager.fetchAuthToken()}",
+                request = StatusMessage(id = driverId, status = status)
+            )
+        val subscribe = observable.observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe({ response -> statusOnResponse(response) }, { t -> onFailure(t) })
+    }
+
+    private fun showInfoCard() {
+        infoCard.visibility = View.VISIBLE
+    }
+
+    private fun setInfoIconInvisible() {
+        infoIV.visibility = View.INVISIBLE
     }
 
     private fun showChangeStatusCard() {
@@ -142,19 +256,43 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
     private fun getStatusFromRB() {
         statusTV.text = status.name
         if (status == Status.offline) {
-            disposableLoc.dispose()
+            setDriverStatus(OFFLINE)
 
-            //TODO wyłączyć nasłuchiwania nowych ride
+            if (this::disposableLoc.isInitialized)
+                disposableLoc.dispose()
+            if (this::disposableRideStatus.isInitialized)
+                disposableNewRide.dispose()
+            setInfoIconInvisible()
         }
         if (status == Status.Zajęty) {
-            //TODO wyłączyć nasłuchiwania nowych ride
-        }
+            setDriverStatus(BUSY)
 
+            setInfoIconInvisible()
+            if (!this::disposableLoc.isInitialized)
+                initLocationListener()
+            else
+                if (disposableLoc.isDisposed)
+                    initLocationListener()
+
+            if (this::disposableNewRide.isInitialized)
+                if (!disposableNewRide.isDisposed)
+                    stopListeningForNewRide()
+        }
         if (status == Status.Online) {
-            initLocationListener()
-            initNewRideListener()
-        }
+            setDriverStatus(AVAILABLE)
+            if (this::disposableLoc.isInitialized) {
+                if (disposableLoc.isDisposed)
+                    initLocationListener()
+            } else
+                initLocationListener()
 
+            if (this::disposableNewRide.isInitialized) {
+                if (disposableNewRide.isDisposed)
+                    initNewRideListener()
+            } else
+                initNewRideListener()
+
+        }
     }
 
     private fun initLocationListener() {
@@ -187,10 +325,79 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
     }
 
     private fun rideResponse(response: RideDetailResponse?) {
+        Log.d(MAPS_ACTIVITY, "rideResponse: $response")
         if (response != null && response.idRide != 0L) {
+            details = response
+            rideId = details.idRide
             Log.d(MAPS_ACTIVITY, "rideResponse: $response")
+            setInfoIconVisible()
+            stopListeningForNewRide() // anulowc nasluhiwanie
+            callRideStatus()
+            addPolylinesAndMarkersToMap()
             //TODO dodać lementy na mapę oraz sprawdzić jeszcze jaki jest typ RIDE!!!
         }
+    }
+
+    private fun addPolylinesAndMarkersToMap() {
+        val userLoc: List<Double>
+        val userLocDest: List<Double>
+//        if (!fromHistory) {
+        userLoc = details.userLocation.split(",").map { it.toDouble() }
+        userLocDest = details.userDestination.split(",").map { it.toDouble() }
+
+        userPolyline = mMap.addPolyline(
+            PolylineOptions()
+                .clickable(true)
+                .addAll(decodePolyline(details.userPolyline))
+                .color(Color.BLUE)
+                .width(5F)
+        )
+
+        driverPolyline = mMap.addPolyline(
+            PolylineOptions()
+                .clickable(true)
+                .addAll(decodePolyline(details.driverPolyline))
+                .color(Color.RED)
+                .width(15F)
+        )
+
+//        } else {
+//            userLoc = userLocFromHist.split(",").map { it.toDouble() }
+//            userLocDest = userDestFromHist.split(",").map { it.toDouble() }
+//            userPolyline = mMap.addPolyline(
+//                PolylineOptions()
+//                    .clickable(true)
+//                    .addAll(decodePolyline(userPolyFromHist))
+//                    .color(Color.BLUE)
+//                    .width(5F)
+//            )
+//            driverPolyline = mMap.addPolyline(
+//                PolylineOptions()
+//                    .clickable(true)
+//                    .addAll(decodePolyline(details.driverPolyline))
+//                    .color(Color.RED)
+//                    .width(5F)
+//            )
+//        }
+        val userMarker = LatLng(userLoc[0], userLoc[1])
+        val userDest = LatLng(userLocDest[0], userLocDest[1])
+        val startMarkerDrawable: Drawable = resources.getDrawable(R.drawable.start_marker)
+        val startIcon: BitmapDescriptor = getMarkerIconFromDrawable(startMarkerDrawable)
+        val endMarkerDrawable: Drawable = resources.getDrawable(R.drawable.flag)
+        val endIcon: BitmapDescriptor = getMarkerIconFromDrawable(endMarkerDrawable)
+
+        uMarker =
+            mMap.addMarker(MarkerOptions().position(userMarker).title("Klient").icon(startIcon))
+        destinationMarker =
+            mMap.addMarker(MarkerOptions().position(userDest).title("Punkt docelowy").icon(endIcon))
+    }
+
+    private fun stopListeningForNewRide() {
+        disposableNewRide.dispose()
+    }
+
+    private fun setInfoIconVisible() {
+        infoIV.visibility = View.VISIBLE
     }
 
     private fun requestPermission() {
@@ -210,8 +417,15 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
         }
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
-                Log.d(MAPS_ACTIVITY, "onCreate: ${location.toString()}")
-                changeMarkLocation(location!!)
+                Log.d(MAPS_ACTIVITY, "location: ${location.toString()}")
+                if (location != null) {
+                    val loc: LatLng = LatLng(location.latitude, location.longitude)
+                    if (previousLocation == null || previousLocation != loc) {
+                        previousLocation = loc
+                        changeMarkLocation(loc)
+                        sendLocation(loc)
+                    }
+                }
             }
     }
 
@@ -242,75 +456,25 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
         Log.d(MAPS_ACTIVITY, "onPause: xDDD")
     }
 
-    private fun changeMarkLocation(location: Location) {
-        val loc: LatLng = LatLng(location.latitude, location.longitude)
-        if (previousLocation == null || loc != previousLocation)
-            if (marker == null) {
-                val carMarkerDrawable: Drawable = resources.getDrawable(R.drawable.taxi)
-                val carIcon: BitmapDescriptor = getMarkerIconFromDrawable(carMarkerDrawable)
-                marker =
-                    mMap.addMarker(
-                        MarkerOptions().position(loc).title("Kierowca").icon(carIcon)
-                    )
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 17f))
-                previousLocation = loc
-            } else {
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 17f))
-                marker!!.position = loc
-                previousLocation = loc
-            }
-
+    private fun changeMarkLocation(location: LatLng) {
+        if (marker == null) {
+            val carMarkerDrawable: Drawable = resources.getDrawable(R.drawable.taxi)
+            val carIcon: BitmapDescriptor = getMarkerIconFromDrawable(carMarkerDrawable)
+            marker =
+                mMap.addMarker(
+                    MarkerOptions().position(location).title("Kierowca").icon(carIcon)
+                )
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 17f))
+        } else {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 17f))
+            marker!!.position = location
+        }
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(50.874217, 20.631361), 12f))
 
-        val userLoc: List<Double>
-        val userLocDest: List<Double>
-//        if (!fromHistory) {
-//            userLoc = details.userLocation.split(",").map { it.toDouble() }
-//            userLocDest = details.userDestination.split(",").map { it.toDouble() }
-//
-//            userPolyline = googleMap.addPolyline(
-//                PolylineOptions()
-//                    .clickable(true)
-//                    .addAll(decodePolyline(details.userPolyline))
-//                    .color(Color.BLUE)
-//                    .width(5F)
-//            )
-//
-//            driverPolyline = googleMap.addPolyline(
-//                PolylineOptions()
-//                    .clickable(true)
-//                    .addAll(decodePolyline(details.driverPolyline))
-//                    .color(Color.RED)
-//                    .width(15F)
-//            )
-//
-//        } else {
-//            userLoc = userLocFromHist.split(",").map { it.toDouble() }
-//            userLocDest = userDestFromHist.split(",").map { it.toDouble() }
-//            userPolyline = googleMap.addPolyline(
-//                PolylineOptions()
-//                    .clickable(true)
-//                    .addAll(decodePolyline(userPolyFromHist))
-//                    .color(Color.BLUE)
-//                    .width(15F)
-//            )
-//        }
-//
-//        val userMarker = LatLng(userLoc[0], userLoc[1])
-//        val userDest = LatLng(userLocDest[0], userLocDest[1])
-//        val startMarkerDrawable: Drawable = resources.getDrawable(R.drawable.start_marker)
-//        val startIcon: BitmapDescriptor = getMarkerIconFromDrawable(startMarkerDrawable)
-//        val endMarkerDrawable: Drawable = resources.getDrawable(R.drawable.flag)
-//        val endIcon: BitmapDescriptor = getMarkerIconFromDrawable(endMarkerDrawable)
-//
-//        mMap.addMarker(
-//            MarkerOptions().position(userMarker).title("Punkt początkowy").icon(startIcon)
-//        )
-//        mMap.addMarker(MarkerOptions().position(userDest).title("Punkt docelowy").icon(endIcon))
-//        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userMarker, 13f))
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -383,11 +547,11 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
             .subscribe({ response -> statusOnResponse(response) }, { t -> onFailure(t) })
     }
 
-    private fun setRideStatusToComplete() {
+    private fun sendRideStatus(status: String) {
         val observable = apiClient.getApiService()
-            .setRideToComplete(
+            .setRidestatus(
                 token = "Bearer ${sessionManager.fetchAuthToken()}",
-                request = StatusMessage(id = rideId, status = COMPLETE)
+                request = StatusMessage(id = rideId, status = status)
             )
         val subscribe = observable.observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
@@ -396,6 +560,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
 
 
     private fun confirmDriverArrive() {
+        rideStatus = "ON_THE_WAY_TO_DEST"
         val observable = apiClient.getApiService()
             .confirmDriverArrive(
                 token = "Bearer ${sessionManager.fetchAuthToken()}",
@@ -429,26 +594,80 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
     private fun statusOnResponse(response: Message?) {
         Log.d(MAPS_ACTIVITY, "statusOnResponse: $response")
         if (response!!.msg == "WAITING_FOR_USER") {
+            //TODO wyswietlic
+            rideStatus = response.msg
+            showWaitCard()
+        }
+        if (response.msg == "NO_APP") {
+            //TODO ride z klientem bez apki
+            rideWithApp = false
+            rideStatus = response.msg
+            newRideDialog()
 
+            statusTV.text = "W drodze"
+            statusTV.isEnabled = false
+        }
+        if (response.msg == "ON_THE_WAY_TO_CLIENT") {
+            rideStatus = response.msg
+            rideWithApp = true
+            newRideDialog()
+
+            statusTV.text = "W drodze"
+            statusTV.isEnabled = false
+        }
+        if (response.msg == "ON_THE_WAY_TO_DEST") {
+            rideStatus = response.msg
+            if (rideWithApp)
+                hideWaitCard()
+            disableRideStatusListener()
+        }
+    }
+
+    private fun disableRideStatusListener() {
+        if (this::disposableRideStatus.isInitialized)
             disposableRideStatus.dispose()
-        }
-        if (response.msg == "ENDING") {
-            getPriceRequest()
-        }
+    }
+
+    private fun newRideDialog() {
+        MaterialAlertDialogBuilder(context)
+            .setTitle("Nowe zamówienie")
+            .setPositiveButton("OK") { _, _ ->
+            }
+            .show()
+    }
+
+    private fun showWaitCard() {
+        waitCard.visibility = View.VISIBLE
     }
 
 
     private fun initDisposableRideStatus() {
         disposableRideStatus = Observable.interval(
-            1000, 3000,
+            1000, 2000,
             TimeUnit.MILLISECONDS
         )
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe { callRideStatus() }
     }
 
-    private fun sendLocation() {
-        Log.d(MAPS_ACTIVITY, "sendLocation: dupa")
+    private fun sendLocation(location: LatLng) {
+        val stringLocation: String =
+            location.latitude.toString() + "," + location.longitude.toString()
+
+        Log.d(MAPS_ACTIVITY, "sendLocation: id: $driverId  lokalizacja $stringLocation")
+
+        val observable = apiClient.getApiService()
+            .addLocation(
+                token = "Bearer ${sessionManager.fetchAuthToken()}",
+                request = com.lisowski.driverapp.models.Location(
+                    driverId = driverId,
+                    location = stringLocation
+                )
+            )
+        val subscribe = observable.observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe({ response -> statusOnResponse(response) }, { t -> onFailure(t) })
+
     }
 
 
