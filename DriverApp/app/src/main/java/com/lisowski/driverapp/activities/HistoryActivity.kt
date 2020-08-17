@@ -31,17 +31,15 @@ class HistoryActivity : AppCompatActivity(), HistoryRecycleAdapter.OnItemClickLi
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_history)
 
-
         //drawerConf
         initToolBarAndDrawer()
-
 
         apiClient = ApiClient()
         sessionManager = SharedPreferencesManager(this)
 
         val id = sessionManager.fetchUserId()
         if (id!! > 0) {
-            getUserHistory(id)
+            getDriverHistory(id)
         }
     }
 
@@ -58,26 +56,18 @@ class HistoryActivity : AppCompatActivity(), HistoryRecycleAdapter.OnItemClickLi
         val userLocation: String = userHistory[position].userLocation
         val userDestination :String = userHistory[position].userDestination
         val userPolyline :String = userHistory[position].userPolyline
+        val driverPolyline :String = userHistory[position].driverPolyline
 
         val intent = Intent(applicationContext, MapActivity::class.java)
         intent.putExtra(Constants.USER_LOC, userLocation)
         intent.putExtra(Constants.USER_DEST, userDestination)
         intent.putExtra(Constants.USER_POLYLINE, userPolyline)
+        intent.putExtra(Constants.DRIVER_POLYLINE, driverPolyline)
         startActivity(intent)
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.nav_order -> {
-                Log.d(HISTORY_ACTIVITY, "onNavigationItemSelected: 1")
-//                val intent = Intent(applicationContext, OrderActivity::class.java)
-//                startActivity(intent)
-            }
-            R.id.nav_history -> {
-                Log.d(HISTORY_ACTIVITY, "onNavigationItemSelected: 1")
-//                val intent = Intent(applicationContext, HistoryActivity::class.java)
-//                startActivity(intent)
-            }
             R.id.nav_logout -> {
                 Log.d(HISTORY_ACTIVITY, "onNavigationItemSelected: 3")
                 sessionManager.clear()
@@ -105,11 +95,11 @@ class HistoryActivity : AppCompatActivity(), HistoryRecycleAdapter.OnItemClickLi
         }
     }
 
-    private fun getUserHistory(id: Long) {
+    private fun getDriverHistory(id: Long) {
         Log.d(HISTORY_ACTIVITY, "getUserHistory: ideee $id")
         val observable = apiClient.getApiService()
             .getHistory(
-                token = "Bearer ${sessionManager.fetchAuthToken()}", id_ride = 10)
+                token = "Bearer ${sessionManager.fetchAuthToken()}", id_ride = id)
         val subscribe = observable.observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
             .subscribe({ response -> onResponse(response) }, { t -> onFailure(t) })
@@ -133,7 +123,6 @@ class HistoryActivity : AppCompatActivity(), HistoryRecycleAdapter.OnItemClickLi
     private fun onResponse(response: List<RideDetails>?) {
         userHistory = response as ArrayList<RideDetails>
         Log.d(HISTORY_ACTIVITY, "onResponse: size ${userHistory.size}")
-
 
         historyRV.adapter = HistoryRecycleAdapter(userHistory,this)
         historyRV.layoutManager = LinearLayoutManager(this)

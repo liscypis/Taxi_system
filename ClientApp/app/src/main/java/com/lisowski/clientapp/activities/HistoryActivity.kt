@@ -117,7 +117,7 @@ class HistoryActivity : AppCompatActivity(), HistoryRecycleAdapter.OnItemClickLi
         Log.d(HISTORY_ACTIVITY, "getUserHistory: ideee $id")
         val observable = apiClient.getApiService()
             .getHistory(
-                token = "Bearer ${sessionManager.fetchAuthToken()}", id_ride = 10)
+                token = "Bearer ${sessionManager.fetchAuthToken()}", id_ride = id)
         val subscribe = observable.observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
             .subscribe({ response -> onResponse(response) }, { t -> onFailure(t) })
@@ -141,8 +141,8 @@ class HistoryActivity : AppCompatActivity(), HistoryRecycleAdapter.OnItemClickLi
     private fun onResponse(response: List<RideDetails>?) {
         userHistory = response as ArrayList<RideDetails>
         Log.d(HISTORY_ACTIVITY, "onResponse: size ${userHistory.size}")
-
-
+        for (user in userHistory)
+            Log.d(HISTORY_ACTIVITY, "onResponse: ${user.toString()}")
         historyRV.adapter = HistoryRecycleAdapter(userHistory,this)
         historyRV.layoutManager = LinearLayoutManager(this)
         historyRV.setHasFixedSize(true)

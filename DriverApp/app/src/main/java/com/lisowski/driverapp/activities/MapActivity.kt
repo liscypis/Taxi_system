@@ -19,8 +19,8 @@ import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
+import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -33,8 +33,12 @@ import com.lisowski.clientapp.API.ApiClient
 import com.lisowski.driverapp.Constants.AVAILABLE
 import com.lisowski.driverapp.Constants.BUSY
 import com.lisowski.driverapp.Constants.COMPLETE
+import com.lisowski.driverapp.Constants.DRIVER_POLYLINE
 import com.lisowski.driverapp.Constants.ENDING
 import com.lisowski.driverapp.Constants.OFFLINE
+import com.lisowski.driverapp.Constants.USER_DEST
+import com.lisowski.driverapp.Constants.USER_LOC
+import com.lisowski.driverapp.Constants.USER_POLYLINE
 import com.lisowski.driverapp.Constants.WAITING_FOR_USER
 import com.lisowski.driverapp.R
 import com.lisowski.driverapp.Utils.SharedPreferencesManager
@@ -62,7 +66,6 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
     private lateinit var mMap: GoogleMap
     private lateinit var details: RideDetailResponse
     private lateinit var sessionManager: SharedPreferencesManager
-    private lateinit var disposableLoc: Disposable
     private lateinit var disposableRideStatus: Disposable
     private lateinit var disposableNewRide: Disposable
     private lateinit var apiClient: ApiClient
@@ -74,16 +77,19 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
     private lateinit var driverPolyline: Polyline
     private lateinit var userPolyline: Polyline
     private lateinit var rideStatus: String
+
+    private lateinit var locationRequest: LocationRequest
+    private lateinit var locationCallback: LocationCallback
+
     private var marker: Marker? = null
     private lateinit var uMarker: Marker
-    private  lateinit var destinationMarker: Marker
-    private var previousLocation: LatLng? = null
+    private lateinit var destinationMarker: Marker
 
 
     private val context: Context = this
     private var driverId: Long = -1
     private var rideId: Long = -1
-    private var fromHistory = true
+    private var fromHistory = false
     private var rideWithApp = true
     private var status: Status = Status.offline
 
@@ -98,6 +104,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         requestPermission()
+        getLocationUpdates()
 
 
         apiClient = ApiClient()
@@ -105,6 +112,23 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
 
         //drawerConf
         initToolBarAndDrawer()
+
+
+        val uDest = intent.getStringExtra(USER_DEST)
+        val uPoly = intent.getStringExtra(USER_POLYLINE)
+        val uLoc = intent.getStringExtra(USER_LOC)
+        val dPly = intent.getStringExtra(DRIVER_POLYLINE)
+        if (uDest != null) {
+            userDestFromHist = uDest
+            fromHistory = true
+        }
+        if (uLoc != null)
+            userLocFromHist = uLoc
+        if (uPoly != null)
+            userPolyFromHist = uPoly
+        if (dPly != null) {
+            driverPolyFromHist = dPly
+        }
 
 
         driverId = sessionManager.fetchUserId()!!
@@ -153,6 +177,10 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
         }
         statusTV.setOnClickListener {
             showChangeStatusCard()
+            if(fromHistory){
+                fromHistory = false
+                mMap.clear()
+            }
         }
 
 
@@ -227,6 +255,55 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
         }
     }
 
+    private fun getLocationUpdates() {
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+        locationRequest = LocationRequest()
+        locationRequest.interval = 4000
+        locationRequest.fastestInterval = 2000
+        locationRequest.smallestDisplacement = 2f
+        locationRequest.priority =
+            LocationRequest.PRIORITY_HIGH_ACCURACY
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult?) {
+                locationResult ?: return
+                if (locationResult.locations.isNotEmpty()) {
+                    val location =
+                        locationResult.lastLocation
+                    val loc: LatLng = LatLng(location.latitude, location.longitude)
+                    Log.d(MAPS_ACTIVITY, "onLocationResult: new location $location")
+                    changeMarkLocation(loc)
+                    sendLocation(loc)
+                }
+            }
+        }
+    }
+
+    //start location updates
+    private fun startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            null /* Looper */
+        )
+    }
+
+    private fun stopLocationUpdates() {
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+    }
+
     private fun sendAvStatusAndUpdateInterface() {
         setDriverStatus(AVAILABLE)
         setInfoIconInvisible()
@@ -266,35 +343,22 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
         statusTV.text = status.name
         if (status == Status.offline) {
             setDriverStatus(OFFLINE)
-
-            if (this::disposableLoc.isInitialized)
-                disposableLoc.dispose()
+            stopLocationUpdates()
             if (this::disposableRideStatus.isInitialized)
                 disposableNewRide.dispose()
             setInfoIconInvisible()
         }
         if (status == Status.Zajęty) {
             setDriverStatus(BUSY)
-
+            startLocationUpdates()
             setInfoIconInvisible()
-            if (!this::disposableLoc.isInitialized)
-                initLocationListener()
-            else
-                if (disposableLoc.isDisposed)
-                    initLocationListener()
-
             if (this::disposableNewRide.isInitialized)
                 if (!disposableNewRide.isDisposed)
                     stopListeningForNewRide()
         }
         if (status == Status.Online) {
             setDriverStatus(AVAILABLE)
-            if (this::disposableLoc.isInitialized) {
-                if (disposableLoc.isDisposed)
-                    initLocationListener()
-            } else
-                initLocationListener()
-
+            startLocationUpdates()
             if (this::disposableNewRide.isInitialized) {
                 if (disposableNewRide.isDisposed)
                     initNewRideListener()
@@ -304,14 +368,6 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
         }
     }
 
-    private fun initLocationListener() {
-        disposableLoc = Observable.interval(
-            1000, 2000,
-            TimeUnit.MILLISECONDS
-        )
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { getLoc() }
-    }
 
     private fun initNewRideListener() {
         disposableNewRide = Observable.interval(
@@ -343,16 +399,12 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
             stopListeningForNewRide() // anulowc nasluhiwanie
             callRideStatus()
             addPolylinesAndMarkersToMap()
-            //TODO dodać lementy na mapę oraz sprawdzić jeszcze jaki jest typ RIDE!!!
         }
     }
 
     private fun addPolylinesAndMarkersToMap() {
-        val userLoc: List<Double>
-        val userLocDest: List<Double>
-//        if (!fromHistory) {
-        userLoc = details.userLocation.split(",").map { it.toDouble() }
-        userLocDest = details.userDestination.split(",").map { it.toDouble() }
+        val userLoc: List<Double> = details.userLocation.split(",").map { it.toDouble() }
+        val userLocDest: List<Double> = details.userDestination.split(",").map { it.toDouble() }
 
         userPolyline = mMap.addPolyline(
             PolylineOptions()
@@ -369,25 +421,6 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
                 .color(Color.RED)
                 .width(15F)
         )
-
-//        } else {
-//            userLoc = userLocFromHist.split(",").map { it.toDouble() }
-//            userLocDest = userDestFromHist.split(",").map { it.toDouble() }
-//            userPolyline = mMap.addPolyline(
-//                PolylineOptions()
-//                    .clickable(true)
-//                    .addAll(decodePolyline(userPolyFromHist))
-//                    .color(Color.BLUE)
-//                    .width(5F)
-//            )
-//            driverPolyline = mMap.addPolyline(
-//                PolylineOptions()
-//                    .clickable(true)
-//                    .addAll(decodePolyline(details.driverPolyline))
-//                    .color(Color.RED)
-//                    .width(5F)
-//            )
-//        }
         val userMarker = LatLng(userLoc[0], userLoc[1])
         val userDest = LatLng(userLocDest[0], userLocDest[1])
         val startMarkerDrawable: Drawable = resources.getDrawable(R.drawable.start_marker)
@@ -401,6 +434,42 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
             mMap.addMarker(MarkerOptions().position(userDest).title("Punkt docelowy").icon(endIcon))
     }
 
+    private fun initMapFromHistory() {
+        if (fromHistory) {
+            val userLoc: List<Double> = userLocFromHist.split(",").map { it.toDouble() }
+            val userLocDest: List<Double>  = userDestFromHist.split(",").map { it.toDouble() }
+
+            userPolyline = mMap.addPolyline(
+                PolylineOptions()
+                    .clickable(true)
+                    .addAll(decodePolyline(userPolyFromHist))
+                    .color(Color.BLUE)
+                    .width(5F)
+            )
+            driverPolyline = mMap.addPolyline(
+                PolylineOptions()
+                    .clickable(true)
+                    .addAll(decodePolyline(driverPolyFromHist))
+                    .color(Color.RED)
+                    .width(5F)
+            )
+
+            val userMarker = LatLng(userLoc[0], userLoc[1])
+            val userDest = LatLng(userLocDest[0], userLocDest[1])
+            val startMarkerDrawable: Drawable = resources.getDrawable(R.drawable.start_marker)
+            val startIcon: BitmapDescriptor = getMarkerIconFromDrawable(startMarkerDrawable)
+            val endMarkerDrawable: Drawable = resources.getDrawable(R.drawable.flag)
+            val endIcon: BitmapDescriptor = getMarkerIconFromDrawable(endMarkerDrawable)
+
+            uMarker =
+                mMap.addMarker(MarkerOptions().position(userMarker).title("Klient").icon(startIcon))
+            destinationMarker =
+                mMap.addMarker(
+                    MarkerOptions().position(userDest).title("Punkt docelowy").icon(endIcon)
+                )
+        }
+    }
+
     private fun stopListeningForNewRide() {
         disposableNewRide.dispose()
     }
@@ -411,31 +480,6 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
 
     private fun requestPermission() {
         ActivityCompat.requestPermissions(this, arrayOf(ACCESS_FINE_LOCATION), 1)
-    }
-
-    private fun getLoc() {
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return
-        }
-        fusedLocationClient.lastLocation
-            .addOnSuccessListener { location: Location? ->
-//                Log.d(MAPS_ACTIVITY, "location: ${location.toString()}")
-                if (location != null) {
-                    val loc: LatLng = LatLng(location.latitude, location.longitude)
-                    if (previousLocation == null || previousLocation != loc) {
-                        previousLocation = loc
-                        changeMarkLocation(loc)
-                        sendLocation(loc)
-                    }
-                }
-            }
     }
 
 
@@ -451,17 +495,13 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
     override fun onResume() {
         super.onResume()
         Log.d(MAPS_ACTIVITY, "onResume: :D")
-        if (this::disposableLoc.isInitialized)
-            if (disposableLoc.isDisposed)
-                initLocationListener()
-
-
+        if (status == Status.Online || status == Status.Zajęty)
+            startLocationUpdates()
     }
 
     override fun onPause() {
         super.onPause()
-        if (this::disposableLoc.isInitialized)
-            disposableLoc.dispose()
+        stopLocationUpdates()
         Log.d(MAPS_ACTIVITY, "onPause: xDDD")
     }
 
@@ -482,18 +522,14 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+        initMapFromHistory()
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(50.874217, 20.631361), 12f))
 
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        if (fromHistory) {
+        if (status == Status.offline) {
             when (item.itemId) {
-                R.id.nav_order -> {
-//                    Log.d(MAPS_ACTIVITY, "onNavigationItemSelected: 1")
-//                    val intent = Intent(applicationContext, OrderActivity::class.java)
-//                    startActivity(intent)
-                }
                 R.id.nav_history -> {
                     Log.d(MAPS_ACTIVITY, "onNavigationItemSelected: 1")
                     val intent = Intent(applicationContext, HistoryActivity::class.java)
@@ -506,7 +542,6 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
                     startActivity(intent)
                 }
             }
-
         }
         drawerLayout.closeDrawer(GravityCompat.START)
         return true

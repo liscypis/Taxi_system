@@ -1,5 +1,7 @@
 package com.lisowski.driverapp.adapters
 
+import android.service.controls.ControlsProviderService
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -38,12 +40,12 @@ class HistoryRecycleAdapter(
                 .withLocale(Locale.GERMAN)
                 .withZone(ZoneId.systemDefault())
 
+        val start = Instant.parse(currentItem.timeStart)
         val endTime = Instant.parse(currentItem.endTime)
-        val arrivalTime = Instant.parse(currentItem.arrivalTime)
-        val ns: Long = Duration.between(arrivalTime, endTime).toMinutes()
+        val ns: Long = Duration.between(start, endTime).toMinutes()
+        Log.d(ControlsProviderService.TAG, "onBindViewHolder: end time $endTime start time $start  minuty $ns")
 
         holder.time.text = ns.toString()
-        holder.price.text = currentItem.price.toString()
         holder.rate.text = currentItem.rating.toString()
         holder.date.text = formatter.format(timeStart)
     }
@@ -54,7 +56,6 @@ class HistoryRecycleAdapter(
     inner class HistoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
         View.OnClickListener {
         val time: TextView = itemView.historyTimeTV
-        val price: TextView = itemView.historyPriceTV
         val rate: TextView = itemView.historyRatingTV
         val date: TextView = itemView.dateTV
 

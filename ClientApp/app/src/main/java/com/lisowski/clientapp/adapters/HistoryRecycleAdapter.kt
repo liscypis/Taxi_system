@@ -1,5 +1,6 @@
 package com.lisowski.clientapp.adapters
 
+import android.service.controls.ControlsProviderService.TAG
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -42,6 +43,7 @@ class HistoryRecycleAdapter(
         val endTime = Instant.parse(currentItem.endTime)
         val arrivalTime = Instant.parse(currentItem.arrivalTime)
         val ns: Long = Duration.between(arrivalTime, endTime).toMinutes()
+        Log.d(TAG, "onBindViewHolder: end time $endTime arrtime $arrivalTime  minuty $ns")
 
         holder.time.text = ns.toString()
         holder.price.text = currentItem.price.toString()

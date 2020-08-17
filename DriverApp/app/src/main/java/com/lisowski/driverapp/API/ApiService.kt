@@ -12,25 +12,6 @@ interface ApiService {
     @POST(Constants.LOGIN_URL)
     fun login(@Body request: LoginRequest): Call<LoginResponse>
 
-
-    @POST(Constants.INITIAL_ORDER)
-    fun orderRide(
-        @Header("Authorization") token: String,
-        @Body request: RideRequest
-    ): Call<RideDetailResponse>
-
-    @POST(Constants.CONFIRM_ORDER)
-    fun confirmRide(
-        @Header("Authorization") token: String,
-        @Body request: ConfirmRequest
-    ): Call<Message>
-
-    @GET(Constants.GET_POSITION)
-    fun getDriverLoc(
-        @Header("Authorization") token: String,
-        @Path("driverID") driverID: Long
-    ): Observable<Message>
-
     @GET(Constants.GET_RIDE_STATUS)
     fun getRideStatus(
         @Header("Authorization") token: String,
@@ -44,13 +25,6 @@ interface ApiService {
         @Path("id")
         rideId: Long
     ): Observable<Message>
-
-    @GET(Constants.GET_DRIVER_CAR)
-    fun getDriverCar(
-        @Header("Authorization") token: String,
-        @Path("id")
-        rideId: Long
-    ): Observable<Car>
 
     @GET(Constants.GET_PRICE)
     fun getPriceForRide(
@@ -74,7 +48,7 @@ interface ApiService {
     @GET(Constants.GET_HISTORY)
     fun getHistory(
         @Header("Authorization") token: String,
-        @Path("id_user")
+        @Path("id_driver")
         id_ride: Long
     ): Observable<List<RideDetails>>
 
