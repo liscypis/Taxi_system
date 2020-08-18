@@ -1,0 +1,14 @@
+<mat-toolbar color="primary">
+  <span>LIS TAXI</span>
+  <span class="menu-spacer"></span>
+  <div *ngIf="isLoggedIn">
+    <a *ngIf="admin || dispatcher" mat-button [routerLink]="'/accounts'"> Nowy kurs </a>
+    <a *ngIf="admin || dispatcher" mat-button [routerLink]="'/create-account'"> Kursy </a>
+    <a *ngIf="admin"  mat-button [routerLink]="'/contacts'"> Zarządzanie </a>
+
+  </div>
+  <span class="example-spacer"></span>
+  <a mat-button > {{ name }}  {{ surname }}</a>
+  <a *ngIf="isLoggedIn" mat-button (click)="logout()"> Wyloguj </a>
+  <a *ngIf="!isLoggedIn" mat-button [routerLink]="'/login'"> Zaloguj </a>
+</mat-toolbar>

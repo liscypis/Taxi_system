@@ -1,0 +1,18 @@
+.example-card {
+    max-width: 300px;
+  }
+
+  .example-form {
+    min-width: 150px;
+    max-width: 350px;
+    width: 100%;
+  }
+  
+  .example-full-width {
+    width: 100%;
+  }
+
+  .alert-danger {
+    color: #f44336; /* Red */
+    font-weight: bold;
+}

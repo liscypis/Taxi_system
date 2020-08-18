@@ -1,0 +1,23 @@
+<mat-card class="example-card">
+    <mat-card-header>
+      <mat-card-title>Logowanie</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+        <form class="example-form">
+            <mat-form-field class="example-full-width">
+              <mat-label>Login</mat-label>
+              <input matInput placeholder="Login" [(ngModel)]="data.userName" [ngModelOptions]="{standalone: true}" required>
+            </mat-form-field>
+          
+            <mat-form-field class="example-full-width">
+              <mat-label>Hasło</mat-label>
+              <input matInput placeholder="Hasło" [(ngModel)]="data.password" [ngModelOptions]="{standalone: true}" type="password" required>
+            </mat-form-field>
+          </form>
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-raised-button (click)="login()" color="primary">ZALOGUJ</button>
+    </mat-card-actions>
+    <a *ngIf="errorMessage" class="alert-danger"> Błędne dane </a>
+  </mat-card>
+ 
