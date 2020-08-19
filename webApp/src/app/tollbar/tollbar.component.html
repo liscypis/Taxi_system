@@ -2,7 +2,7 @@
   <span>LIS TAXI</span>
   <span class="menu-spacer"></span>
   <div *ngIf="isLoggedIn">
-    <a *ngIf="admin || dispatcher" mat-button [routerLink]="'/accounts'"> Nowy kurs </a>
+    <a *ngIf="admin || dispatcher" mat-button [routerLink]="'/newRide'"> Nowy kurs </a>
     <a *ngIf="admin || dispatcher" mat-button [routerLink]="'/create-account'"> Kursy </a>
     <a *ngIf="admin"  mat-button [routerLink]="'/contacts'"> Zarządzanie </a>
 

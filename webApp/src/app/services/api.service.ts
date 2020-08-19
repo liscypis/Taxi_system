@@ -12,9 +12,9 @@ export class APIService {
 
   constructor(private http: HttpClient) { }
 
-
-  getPublicContent(): Observable<any> {
-    return this.http.get(API_URL + 'all', { responseType: 'text' });
+  initRide(request): Observable<any> {
+    console.log(request)
+    return this.http.post(API_URL + 'initialOrderRideByDispatcher', request);
   }
 
   getUserBoard(): Observable<any> {

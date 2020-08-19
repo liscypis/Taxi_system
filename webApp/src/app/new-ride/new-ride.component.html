@@ -1,0 +1,84 @@
+<mat-card class="main-card">
+    <mat-card-header class="header">
+        <mat-card-title>Nowy kurs</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+        <mat-grid-list cols="2" rowHeight="300px">
+            <mat-grid-tile>
+                <mat-card class="example-card">
+                    <mat-card-header class="header">
+                        <mat-card-title>Dane zamówienia</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <form class="example-form">
+                            <mat-form-field class="example-full-width">
+                                <mat-label>Numer telefonu</mat-label>
+                                <input matInput placeholder="Numer telefonu"  [(ngModel)]="rideRequest.phoneNumber" [ngModelOptions]="{standalone: true}" maxlength="9" type="text" required>
+                            </mat-form-field>
+
+                            <mat-form-field class="example-full-width">
+                                <mat-label>Adres klienta</mat-label>
+                                <input matInput placeholder="Adres klienta" [(ngModel)]="rideRequest.origin" [ngModelOptions]="{standalone: true}" type="text" required>
+                            </mat-form-field>
+
+                            <mat-form-field class="example-full-width">
+                                <mat-label>Cel podróży </mat-label>
+                                <input matInput placeholder="Cel podróży" [(ngModel)]="rideRequest.destination" [ngModelOptions]="{standalone: true}" type="text" required>
+                            </mat-form-field>
+                            <button mat-raised-button color="primary" (click)="initOrder()" >Szukaj</button>
+                        </form>
+
+                    </mat-card-content>
+                </mat-card>
+
+            </mat-grid-tile>
+            <mat-grid-tile>
+                <mat-card class="example-card" *ngIf="rideInfo">
+                    <mat-card-header class="header">
+                        <mat-card-title>Przybliżone dane zamówienia</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <mat-list>
+                            <mat-list-item>
+                                <mat-icon mat-list-icon>access_time</mat-icon>
+                                <div mat-line>Godzina przyjazdu:</div>
+                            </mat-list-item>
+                            <mat-list-item>
+                                <mat-icon mat-list-icon>point_of_sale</mat-icon>
+                                <div mat-line>Cena przejazdu:</div>
+                            </mat-list-item>
+                            <button mat-raised-button color="primary">Potwierdź</button>
+
+                            <button mat-raised-button color="warn" style="margin-left:10px">Anuluj</button>
+                        </mat-list>
+                    </mat-card-content>
+                </mat-card>
+
+                <mat-card class="example-card" *ngIf="!rideInfo">
+                    <mat-card-header class="header">
+                        <mat-card-title>Dane taksówki</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <mat-list>
+                            <mat-list-item>
+                                <div mat-line>Marka: {{carInfo.carModel}}</div>
+                            </mat-list-item>
+                            <mat-list-item>
+                                <div mat-line>Model: {{carInfo.carBrand}}</div>
+                            </mat-list-item>
+                            <mat-list-item>
+                                <div mat-line>Kolor: {{carInfo.color}}</div>
+                            </mat-list-item>
+                            <mat-list-item>
+                                <div mat-line>Rejestracja: {{carInfo.registrationNumber}}</div>
+                            </mat-list-item>
+                            <button mat-raised-button color="primary">Potwierdź</button>
+
+                        </mat-list>
+                    </mat-card-content>
+                </mat-card>
+            </mat-grid-tile>
+        </mat-grid-list>
+    </mat-card-content>
+</mat-card>

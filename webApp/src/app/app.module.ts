@@ -18,13 +18,16 @@ import {MatInputModule} from '@angular/material/input';
 import { AdminComponent } from './admin/admin.component';
 import { LoginComponent } from './login/login.component';
 import { HttpClientModule } from '@angular/common/http';
+import { NewRideComponent } from './new-ride/new-ride.component';
+import {MatGridListModule} from '@angular/material/grid-list';
 
 @NgModule({
   declarations: [
     AppComponent,
     TollbarComponent,
     AdminComponent,
-    LoginComponent
+    LoginComponent,
+    NewRideComponent
   ],
   imports: [
     BrowserModule,
@@ -40,7 +43,8 @@ import { HttpClientModule } from '@angular/common/http';
     MatListModule,
     FormsModule,
     MatCardModule,
-    MatInputModule 
+    MatInputModule,
+    MatGridListModule
   ],
   providers: [],
   bootstrap: [AppComponent]
