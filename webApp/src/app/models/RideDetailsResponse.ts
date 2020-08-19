@@ -11,5 +11,5 @@ export class RideDetailsResponse {
     userDestination: String
     userPhone: String
     driverPhone: String
-    approxPrice: String
+    approxPrice: number
 }

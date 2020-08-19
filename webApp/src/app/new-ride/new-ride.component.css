@@ -48,3 +48,7 @@ input[type=number] {
   background: lightblue;
 } */
 
+.alert-danger {
+  color: #f44336; /* Red */
+  font-weight: bold;
+}

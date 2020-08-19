@@ -29,6 +29,8 @@
                             <button mat-raised-button color="primary" (click)="initOrder()" >Szukaj</button>
                         </form>
 
+                        <a *ngIf="errorMessage == 'No drivers, try again later'" class="alert-danger">Brak kierowców, proszę spróbować później </a>
+                        <a *ngIf="errorMessage == 'Uzupełnij wyszystkie pola'" class="alert-danger">{{errorMessage}} </a>
                     </mat-card-content>
                 </mat-card>
 
@@ -42,30 +44,34 @@
                         <mat-list>
                             <mat-list-item>
                                 <mat-icon mat-list-icon>access_time</mat-icon>
-                                <div mat-line>Godzina przyjazdu:</div>
+                                <div mat-line>Godzina przyjazdu do klienta: {{userTime}}</div>
+                            </mat-list-item>
+                            <mat-list-item>
+                                <mat-icon mat-list-icon>access_time</mat-icon>
+                                <div mat-line>Godzina przyjazdu na miejsce: {{destiantionTime}}</div>
                             </mat-list-item>
                             <mat-list-item>
                                 <mat-icon mat-list-icon>point_of_sale</mat-icon>
-                                <div mat-line>Cena przejazdu:</div>
+                                <div mat-line>Cena przejazdu: {{price}} </div>
                             </mat-list-item>
-                            <button mat-raised-button color="primary">Potwierdź</button>
+                            <button mat-raised-button color="primary" (click)="confirmRide()" >Potwierdź</button>
 
-                            <button mat-raised-button color="warn" style="margin-left:10px">Anuluj</button>
+                            <button mat-raised-button color="warn" (click)="cancelRide()" style="margin-left:10px">Anuluj</button>
                         </mat-list>
                     </mat-card-content>
                 </mat-card>
 
-                <mat-card class="example-card" *ngIf="!rideInfo">
+                <mat-card class="example-card" *ngIf="driverInfo">
                     <mat-card-header class="header">
                         <mat-card-title>Dane taksówki</mat-card-title>
                     </mat-card-header>
                     <mat-card-content>
                         <mat-list>
                             <mat-list-item>
-                                <div mat-line>Marka: {{carInfo.carModel}}</div>
+                                <div mat-line>Marka: {{carInfo.carBrand}}</div>
                             </mat-list-item>
                             <mat-list-item>
-                                <div mat-line>Model: {{carInfo.carBrand}}</div>
+                                <div mat-line>Model: {{carInfo.carModel}}</div>
                             </mat-list-item>
                             <mat-list-item>
                                 <div mat-line>Kolor: {{carInfo.color}}</div>
@@ -73,7 +79,7 @@
                             <mat-list-item>
                                 <div mat-line>Rejestracja: {{carInfo.registrationNumber}}</div>
                             </mat-list-item>
-                            <button mat-raised-button color="primary">Potwierdź</button>
+                            <button mat-raised-button color="primary" (click)="reloadPage()">Potwierdź</button>
 
                         </mat-list>
                     </mat-card-content>
