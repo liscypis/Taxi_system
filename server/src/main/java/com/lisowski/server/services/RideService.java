@@ -214,7 +214,8 @@ public class RideService {
     }
 
     public ResponseEntity<?> checkForNewRide(Long id) {
-        Optional<Ride> optRide = rideRepository.findByDriver_IdAndRideStatusOrRideStatus(id, ERideStatus.ON_THE_WAY_TO_CLIENT.name(),ERideStatus.NO_APP.name());
+        List<String> listOfStatus = List.of(ERideStatus.NO_APP.name(), ERideStatus.ON_THE_WAY_TO_CLIENT.name());
+        Optional<Ride> optRide = rideRepository.findByDriver_IdAndRideStatusIn(id, listOfStatus);
         if (optRide.isPresent()) {
             Ride ride = optRide.get();
             return ResponseEntity.ok(new RideDetailsResponse(ride));
@@ -250,6 +251,12 @@ public class RideService {
     public List<RideDTO> getUserRides(Long userId) {
         Optional<List<Ride>> listOfRides = rideRepository.findByUser_IdAndRideStatus(userId, ERideStatus.COMPLETE.name());
         return listOfRides.map(rides -> rides.stream().map(RideDTO::new).collect(Collectors.toList())).orElse(null);
+    }
+
+    public List<RideDetailsResponse> getActiveRides() {
+        List<String> listOfStatus = List.of(ERideStatus.NO_APP.name(), ERideStatus.ON_THE_WAY_TO_CLIENT.name(), ERideStatus.ON_THE_WAY_TO_DEST.name(),ERideStatus.WAITING_FOR_USER.name());
+        Optional<List<Ride>> listOfRides = rideRepository.findByRideStatusIn(listOfStatus);
+        return listOfRides.map(rides -> rides.stream().map(RideDetailsResponse::new).collect(Collectors.toList())).orElse(null);
     }
 
     public Message setRideRate(RideRating request) {

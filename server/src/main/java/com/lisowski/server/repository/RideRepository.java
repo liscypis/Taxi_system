@@ -1,6 +1,7 @@
 package com.lisowski.server.repository;
 
 import com.lisowski.server.models.Ride;
+import lombok.extern.java.Log;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -9,7 +10,13 @@ import java.util.Optional;
 
 @Repository
 public interface RideRepository extends JpaRepository<Ride, Long> {
-    Optional<Ride> findByDriver_IdAndRideStatusOrRideStatus(Long idDriver, String onTheWay, String noApp);
+
     Optional<List<Ride>> findByDriver_IdAndRideStatus(Long idDriver, String statusComplete);
+
     Optional<List<Ride>> findByUser_IdAndRideStatus(Long idDriver, String statusComplete);
+
+    Optional<List<Ride>> findByRideStatusIn(List<String> notComplete);
+
+    Optional<Ride> findByDriver_IdAndRideStatusIn(Long id, List<String> noAppOrToUser);
+
 }

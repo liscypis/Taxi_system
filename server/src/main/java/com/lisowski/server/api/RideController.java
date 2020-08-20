@@ -7,6 +7,7 @@ import com.lisowski.server.DTO.request.RideRating;
 import com.lisowski.server.DTO.request.RideRequest;
 import com.lisowski.server.DTO.request.StatusMessage;
 import com.lisowski.server.DTO.response.Message;
+import com.lisowski.server.DTO.response.RideDetailsResponse;
 import com.lisowski.server.models.Ride;
 import com.lisowski.server.services.RideService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,6 +85,15 @@ public class RideController {
         List<RideDTO> rideDTOList = rideService.getUserRides(id);
         if(rideDTOList != null)
             return ResponseEntity.ok(rideDTOList);
+        else
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rides not found");
+    }
+
+    @GetMapping("/getActiveRides")
+    public ResponseEntity<?> getActiveRides() {
+        List<RideDetailsResponse> rideList = rideService.getActiveRides();
+        if(rideList != null)
+            return ResponseEntity.ok(rideList);
         else
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rides not found");
     }
