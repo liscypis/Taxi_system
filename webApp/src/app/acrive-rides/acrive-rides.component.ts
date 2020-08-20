@@ -2,6 +2,8 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { APIService } from '../services/api.service';
 import { RideDetailsResponse } from '../models/RideDetailsResponse'
 import { MapInfoWindow, MapMarker, GoogleMap } from '@angular/google-maps';
+import { Subscription, timer } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 
 
@@ -18,6 +20,7 @@ export class AcriveRidesComponent implements OnInit {
   dataSource: Array<RideDetailsResponse>;
   isData = false;
 
+  subscription: Subscription;
 
   polylines = [];
   markers = [];
@@ -63,22 +66,28 @@ export class AcriveRidesComponent implements OnInit {
     this.addMarker(row.userLocation, 'S', "Punkt początkowy");
     this.addPolyline(row.userPolyline, "purple");
     this.addPolyline(row.driverPolyline, "blue");
+    this.getDriverLocation(Number(row.idDriver));
   }
 
   addPolyline(polyline: String, color: String) {
     var decodedPath: google.maps.LatLng[]
-    decodedPath =  google.maps.geometry.encoding.decodePath(String(polyline));
+    decodedPath = google.maps.geometry.encoding.decodePath(String(polyline));
     console.log(decodedPath);
 
     this.polylines.push({
-      path : decodedPath,
-      polylineOptions : {
+      path: decodedPath,
+      polylineOptions: {
         strokeColor: color,
         strokeOpacity: 0.8
       }
     })
   }
   addMarker(row: String, type: String, info: String) {
+    if (this.markers.length == 3){
+      this.markers.pop();
+    }
+      
+
     let splitetLoc = row.split(",");
     let pinImage = "";
     if (type == 'S')
@@ -97,12 +106,32 @@ export class AcriveRidesComponent implements OnInit {
     })
     console.log(splitetLoc)
   }
-  rmoveMarker(): void {
-    this.markers.pop();
-  }
 
   openInfo(marker: MapMarker, info) {
     this.infoContent = info;
     this.info.open(marker);
+  }
+
+  getDriverLocation(driverId: number): void {
+    if (this.subscription != null)
+       this.subscription.unsubscribe();
+
+    this.subscription = timer(0, 10000).pipe(
+      switchMap(() => this.apiService.getDriverLocation(driverId))).subscribe(
+        data => {
+          console.log(data);
+          this.addMarker(data.msg, 'T', "Kierowca");
+        },
+        err => {
+          // this.errorMessage = err.error.message;
+          console.log(err.error.message);
+        }
+      );
+  }
+
+
+
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
   }
 }

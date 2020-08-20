@@ -28,8 +28,8 @@ export class APIService {
     return this.http.get(API_URL + 'getActiveRides');
   }
 
-  getModeratorBoard(): Observable<any> {
-    return this.http.get(API_URL + 'mod', { responseType: 'text' });
+  getDriverLocation(driverId: number): Observable<any> {
+    return this.http.get(API_URL + 'getDriverLocation/' + driverId);
   }
 
   getAdminBoard(): Observable<any> {
