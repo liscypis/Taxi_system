@@ -20,6 +20,12 @@ import { LoginComponent } from './login/login.component';
 import { HttpClientModule } from '@angular/common/http';
 import { NewRideComponent } from './new-ride/new-ride.component';
 import {MatGridListModule} from '@angular/material/grid-list';
+import { AcriveRidesComponent } from './acrive-rides/acrive-rides.component';
+import { GoogleMapsModule } from '@angular/google-maps';
+import {MatTableModule} from '@angular/material/table';
+import {TableVirtualScrollModule} from 'ng-table-virtual-scroll';
+import {CdkScrollableModule} from '@angular/cdk/scrolling';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 
 
 @NgModule({
@@ -28,7 +34,8 @@ import {MatGridListModule} from '@angular/material/grid-list';
     TollbarComponent,
     AdminComponent,
     LoginComponent,
-    NewRideComponent
+    NewRideComponent,
+    AcriveRidesComponent
   ],
   imports: [
     BrowserModule,
@@ -45,7 +52,11 @@ import {MatGridListModule} from '@angular/material/grid-list';
     FormsModule,
     MatCardModule,
     MatInputModule,
-    MatGridListModule
+    MatGridListModule,
+    GoogleMapsModule,
+    MatTableModule,
+    CdkScrollableModule,
+    ScrollingModule
   ],
   providers: [],
   bootstrap: [AppComponent]

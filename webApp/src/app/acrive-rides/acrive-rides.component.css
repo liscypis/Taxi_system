@@ -1,0 +1,60 @@
+.main-card {
+    width: 1000px;
+}
+
+.example-card {
+    width : 460px;
+}
+
+.example-full-width {
+    width: 100%;
+}
+
+.alert-danger {
+    color      : #f44336;
+    /* Red */
+    font-weight: bold;
+}
+
+
+::ng-deep .header .mat-card-header-text {
+    margin: 0 !important;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin            : 0;
+}
+
+/* Firefox */
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.mat-list-icon {
+    color: rgba(0, 0, 0, 0.54);
+}
+
+:host>>>.mat-figure {
+    align-items: start !important;
+}
+
+/* .mat-grid-tile {
+  background: lightblue;
+} */
+
+.alert-danger {
+    color      : #f44336;
+    /* Red */
+    font-weight: bold;
+}
+
+.example-viewport {
+    height: 430px;
+    width: 100%;
+  }
+  table {
+  width: 100%;
+}

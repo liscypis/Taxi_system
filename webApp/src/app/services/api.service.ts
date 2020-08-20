@@ -24,8 +24,8 @@ export class APIService {
     return this.http.post(API_URL + 'confirmRide', request);
   }
 
-  getUserBoard(): Observable<any> {
-    return this.http.get(API_URL + 'user', { responseType: 'text' });
+  getActiveRides(): Observable<any> {
+    return this.http.get(API_URL + 'getActiveRides');
   }
 
   getModeratorBoard(): Observable<any> {

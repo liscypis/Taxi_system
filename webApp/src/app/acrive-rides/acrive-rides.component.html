@@ -1,0 +1,67 @@
+<mat-card class="main-card">
+    <mat-card-header class="header">
+        <mat-card-title>Aktywne kursy</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+        <mat-grid-list cols="2" rowHeight="500px">
+            <mat-grid-tile>
+                <mat-card class="example-card">
+                    <mat-card-header class="header">
+                        <mat-card-title>Mapa</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <google-map height="430px" width="100%" [zoom]="zoom" [center]="center" [options]="options">
+
+                            <map-marker #somemarker="mapMarker" *ngFor="let marker of markers" [position]="marker.position"
+                                [label]="marker.label" [title]="marker.title" [options]="marker.options"
+                                (mapClick)="openInfo(somemarker, marker.info)">
+                            </map-marker>
+                            <map-polyline *ngFor="let polyline of polylines" [options]="polyline.polylineOptions" [path] ="polyline.path" >
+
+                            </map-polyline>
+
+                                <map-info-window>{{ infoContent }}</map-info-window>
+                        </google-map>
+                    </mat-card-content>
+                </mat-card>
+
+            </mat-grid-tile>
+            <mat-grid-tile>
+                <mat-card class="example-card">
+                    <mat-card-header class="header">
+                        <mat-card-title>Lista kursów</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+
+                        <cdk-virtual-scroll-viewport itemSize="50" class="example-viewport">
+                            <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+
+                                <ng-container matColumnDef="driverPhone">
+                                    <mat-header-cell *matHeaderCellDef> Numer kierowcy </mat-header-cell>
+                                    <mat-cell *matCellDef="let element"> {{element.driverPhone}} </mat-cell>
+                                </ng-container>
+
+                                <ng-container matColumnDef="userPhone">
+                                    <mat-header-cell *matHeaderCellDef> Numer klienta </mat-header-cell>
+                                    <mat-cell *matCellDef="let element"> {{element.userPhone}} </mat-cell>
+                                </ng-container>
+
+                                <ng-container matColumnDef="idRide">
+                                    <mat-header-cell *matHeaderCellDef> ID kursu </mat-header-cell>
+                                    <mat-cell *matCellDef="let element"> {{element.idRide}} </mat-cell>
+                                </ng-container>
+
+
+                                <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+                                <mat-row (click)="onRowClicked(row)" *matRowDef="let row; columns: displayedColumns;">
+                                </mat-row>
+                            </table>
+                        </cdk-virtual-scroll-viewport>
+                    </mat-card-content>
+                </mat-card>
+                <button mat-raised-button (click)="rmoveMarker()" color="primary">ZALOGUJ</button>
+            </mat-grid-tile>
+        </mat-grid-list>
+    </mat-card-content>
+</mat-card>

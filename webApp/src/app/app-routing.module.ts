@@ -3,12 +3,14 @@ import { Routes, RouterModule } from '@angular/router';
 import { AdminComponent } from './admin/admin.component';
 import { LoginComponent } from './login/login.component';
 import { NewRideComponent } from './new-ride/new-ride.component';
+import {AcriveRidesComponent} from './acrive-rides/acrive-rides.component'
 
 
 const routes: Routes = [
   {path: 'login', component:LoginComponent},
   {path: 'admin', component:AdminComponent},
   {path: 'newRide', component:NewRideComponent},
+  {path: 'activeRides', component:AcriveRidesComponent},
   {path: '', redirectTo: '/login', pathMatch: 'full'}
 ];
 
