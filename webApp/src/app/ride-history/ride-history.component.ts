@@ -1,26 +1,26 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { APIService } from '../services/api.service';
-import { RideDetailsResponse } from '../models/RideDetailsResponse'
-import { MapInfoWindow, MapMarker, GoogleMap } from '@angular/google-maps';
-import { Subscription, timer } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
-
+import { Ride } from '../models/Ride'
+import { GoogleMap, MapInfoWindow, MapMarker } from '@angular/google-maps';
 
 
 @Component({
-  selector: 'app-acrive-rides',
-  templateUrl: './acrive-rides.component.html',
-  styleUrls: ['./acrive-rides.component.css']
+  selector: 'app-ride-history',
+  templateUrl: './ride-history.component.html',
+  styleUrls: ['./ride-history.component.css']
 })
-export class AcriveRidesComponent implements OnInit {
+export class RideHistoryComponent implements OnInit {
   @ViewChild(GoogleMap, { static: false }) map: GoogleMap;
   @ViewChild(MapInfoWindow, { static: false }) info: MapInfoWindow;
 
-  displayedColumns: string[] = ['idRide', 'driverPhone', 'userPhone'];
-  dataSource: Array<RideDetailsResponse>;
-  isData = false;
+  displayedColumns: string[] = ['idRide', 'idDriver', 'driverName', 'driverSurname', 'userName', 
+  'userSurname', 'rating', 'price', 'timeStart', 'arrivalTime', 'endTime'];
+  dataSource: Array<Ride>;
 
-  subscription: Subscription;
+  idDriver :number;
+  name:String;
+  surname:String;
+  avgRating:String;
 
   polylines = [];
   markers = [];
@@ -39,18 +39,16 @@ export class AcriveRidesComponent implements OnInit {
   }
   constructor(private apiService: APIService) { }
 
-
   ngOnInit(): void {
-    this.getAcriveRides();
+    this.getCompleteRides();
   }
 
-
-  getAcriveRides(): void {
-    this.apiService.getActiveRides().subscribe(
+  getCompleteRides(): void {
+    this.apiService.getCompleteRides().subscribe(
       data => {
         console.log(data);
         this.dataSource = data;
-        this.isData = true;
+        console.warn(this.dataSource);
       },
       err => {
         // this.errorMessage = err.error.message;
@@ -58,21 +56,42 @@ export class AcriveRidesComponent implements OnInit {
       }
     );
   }
+
+  getDriverRating(idDriver:number):void {
+    this.apiService.getDriverRating(idDriver).subscribe(
+      data => {
+        console.log(data);
+        this.avgRating = data.msg;
+      },
+      err => {
+        // this.errorMessage = err.error.message;
+        console.log(err.error.message);
+      }
+    );
+  }
+
   onRowClicked(row) {
     console.log('Row clicked: ', row);
     this.polylines = [];
     this.markers = [];
     this.addMarker(row.userDestination, 'C', "Punkt końcowy");
     this.addMarker(row.userLocation, 'S', "Punkt początkowy");
-    this.addPolyline(row.userPolyline, "purple");
-    this.addPolyline(row.driverPolyline, "blue");
-    this.getDriverLocation(Number(row.idDriver));
+    this.addPolyline(row.userPolyline, "purple", false);
+    this.addPolyline(row.driverPolyline, "blue", true);
+
+    this.idDriver = row.idDriver;
+    this.name = row.driverName;
+    this.surname = row.driverSurname;
+
+    this.getDriverRating(Number(row.idDriver));
   }
 
-  addPolyline(polyline: String, color: String) {
+  addPolyline(polyline: String, color: String, isToUserPoly:boolean) {
     var decodedPath: google.maps.LatLng[]
     decodedPath = google.maps.geometry.encoding.decodePath(String(polyline));
     console.log(decodedPath);
+    if(isToUserPoly)
+      this.addDriverMarekr(decodedPath[0]);
 
     this.polylines.push({
       path: decodedPath,
@@ -82,17 +101,25 @@ export class AcriveRidesComponent implements OnInit {
       }
     })
   }
+
+  addDriverMarekr(loc: google.maps.LatLng) {
+      let pinImage = "http://www.googlemapsmarkers.com/v1/T/0099FF/";
+
+    this.markers.push({
+      position: loc,
+      options: {
+        icon: pinImage
+      },
+      info: "Kierowca"
+    })
+  }
+
+
   addMarker(row: String, type: String, info: String) {
-    if (this.markers.length == 3){
-      this.markers.pop();
-    }
-    
     let splitetLoc = row.split(",");
     let pinImage = "";
     if (type == 'S')
       pinImage = "http://www.googlemapsmarkers.com/v1/S/009900/";
-    if (type == 'T')
-      pinImage = "http://www.googlemapsmarkers.com/v1/T/0099FF/";
     if (type == 'C')
       pinImage = "http://www.googlemapsmarkers.com/v1/C/FF0000/";
 
@@ -106,31 +133,10 @@ export class AcriveRidesComponent implements OnInit {
     console.log(splitetLoc)
   }
 
+
   openInfo(marker: MapMarker, info) {
     this.infoContent = info;
     this.info.open(marker);
   }
 
-  getDriverLocation(driverId: number): void {
-    if (this.subscription != null)
-       this.subscription.unsubscribe();
-
-    this.subscription = timer(0, 10000).pipe(
-      switchMap(() => this.apiService.getDriverLocation(driverId))).subscribe(
-        data => {
-          console.log(data);
-          this.addMarker(data.msg, 'T', "Kierowca");
-        },
-        err => {
-          // this.errorMessage = err.error.message;
-          console.log(err.error.message);
-        }
-      );
-  }
-
-
-
-  ngOnDestroy() {
-    this.subscription.unsubscribe();
-  }
 }

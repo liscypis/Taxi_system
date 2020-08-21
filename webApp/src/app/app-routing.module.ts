@@ -4,6 +4,7 @@ import { AdminComponent } from './admin/admin.component';
 import { LoginComponent } from './login/login.component';
 import { NewRideComponent } from './new-ride/new-ride.component';
 import {AcriveRidesComponent} from './acrive-rides/acrive-rides.component'
+import {RideHistoryComponent} from './ride-history/ride-history.component'
 
 
 const routes: Routes = [
@@ -11,6 +12,8 @@ const routes: Routes = [
   {path: 'admin', component:AdminComponent},
   {path: 'newRide', component:NewRideComponent},
   {path: 'activeRides', component:AcriveRidesComponent},
+  {path: 'rideHistory', component:RideHistoryComponent},
+  
   {path: '', redirectTo: '/login', pathMatch: 'full'}
 ];
 

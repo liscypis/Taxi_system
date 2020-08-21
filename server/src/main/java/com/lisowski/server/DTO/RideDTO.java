@@ -22,6 +22,12 @@ public class RideDTO {
     private String userDestination;
     private Integer rating;
     private float price;
+    private String userName;
+    private String userSurname;
+    private String userNumber;
+    private String driverName;
+    private String driverSurname;
+    private String driverNumber;
 
     public RideDTO(Ride ride) {
         this.idRide = ride.getId();
@@ -38,5 +44,11 @@ public class RideDTO {
         this.driverDistance = ride.getRideDetails().getDriverDistance();
         this.price = ride.getRideDetails().getPrice();
         this.rating = ride.getRideDetails().getRating();
+        this.userName = ride.getUser().getName();
+        this.userSurname = ride.getUser().getSurname();
+        this.userNumber = ride.getUser().getPhoneNum();
+        this.driverName = ride.getDriver().getName();
+        this.driverSurname = ride.getDriver().getSurname();
+        this.driverNumber = ride.getDriver().getPhoneNum();
     }
 }

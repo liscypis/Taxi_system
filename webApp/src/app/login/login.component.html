@@ -1,5 +1,5 @@
 <mat-card class="example-card">
-    <mat-card-header>
+    <mat-card-header class="header">
       <mat-card-title>Logowanie</mat-card-title>
     </mat-card-header>
     <mat-card-content>
@@ -13,11 +13,9 @@
               <mat-label>Hasło</mat-label>
               <input matInput placeholder="Hasło" [(ngModel)]="data.password" [ngModelOptions]="{standalone: true}" type="password" required>
             </mat-form-field>
+            <button mat-raised-button (click)="login()" color="primary">ZALOGUJ</button>
           </form>
+          <a *ngIf="errorMessage" class="alert-danger"> Błędne dane </a>
     </mat-card-content>
-    <mat-card-actions>
-      <button mat-raised-button (click)="login()" color="primary">ZALOGUJ</button>
-    </mat-card-actions>
-    <a *ngIf="errorMessage" class="alert-danger"> Błędne dane </a>
   </mat-card>
  

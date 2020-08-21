@@ -1,0 +1,114 @@
+<mat-card class="main-card">
+    <mat-card-header class="header">
+        <mat-card-title>Historia kursów</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+        <mat-grid-list cols="1"rowHeight="500px" >
+            <mat-grid-tile>
+                <mat-card class="example-card-wide">
+                    <mat-card-header class="header">
+                        <mat-card-title>Lista kursów</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+
+                        <cdk-virtual-scroll-viewport itemSize="50" class="example-viewport">
+                            <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+
+                                <ng-container matColumnDef="idRide">
+                                    <mat-header-cell *matHeaderCellDef> ID kursu </mat-header-cell>
+                                    <mat-cell *matCellDef="let element"> {{element.idRide}} </mat-cell>
+                                </ng-container>
+
+                                <ng-container matColumnDef="idDriver">
+                                    <mat-header-cell *matHeaderCellDef> ID kier </mat-header-cell>
+                                    <mat-cell *matCellDef="let element"> {{element.idDriver}} </mat-cell>
+                                </ng-container>
+
+                                <ng-container matColumnDef="driverName">
+                                    <mat-header-cell *matHeaderCellDef> Imię kierowcy </mat-header-cell>
+                                    <mat-cell *matCellDef="let element"> {{element.driverName}} </mat-cell>
+                                </ng-container>
+
+                                <ng-container matColumnDef="driverSurname">
+                                    <mat-header-cell *matHeaderCellDef> Nazwisko kierowcy </mat-header-cell>
+                                    <mat-cell *matCellDef="let element"> {{element.driverSurname}} </mat-cell>
+                                </ng-container>
+
+
+                                <ng-container matColumnDef="userName">
+                                    <mat-header-cell *matHeaderCellDef> Imię klienta </mat-header-cell>
+                                    <mat-cell *matCellDef="let element"> {{element.userName}} </mat-cell>
+                                </ng-container>
+
+                                <ng-container matColumnDef="userSurname">
+                                    <mat-header-cell *matHeaderCellDef> Nazwisko klienta </mat-header-cell>
+                                    <mat-cell *matCellDef="let element"> {{element.userSurname}} </mat-cell>
+                                </ng-container>
+
+                                <ng-container matColumnDef="price">
+                                    <mat-header-cell *matHeaderCellDef> Cena [zł]</mat-header-cell>
+                                    <mat-cell *matCellDef="let element"> {{element.price}} </mat-cell>
+                                </ng-container>
+
+                                <ng-container matColumnDef="rating">
+                                    <mat-header-cell *matHeaderCellDef> Ocena </mat-header-cell>
+                                    <mat-cell *matCellDef="let element"> {{element.rating }} </mat-cell>
+                                </ng-container>
+
+                                <ng-container matColumnDef="timeStart">
+                                    <mat-header-cell *matHeaderCellDef> Data zamówienia </mat-header-cell>
+                                    <mat-cell *matCellDef="let element"> {{element.timeStart | date:'d.LL.yy HH:mm:ss'}} </mat-cell>
+                                </ng-container>
+
+                                <ng-container matColumnDef="arrivalTime">
+                                    <mat-header-cell *matHeaderCellDef> Data odebrania klienta</mat-header-cell>
+                                    <mat-cell *matCellDef="let element"> {{element.arrivalTime | date:'d.LL.yy HH:mm:ss'}} </mat-cell>
+                                </ng-container>
+
+                                <ng-container matColumnDef="endTime">
+                                    <mat-header-cell *matHeaderCellDef> Data zakończenia </mat-header-cell>
+                                    <mat-cell *matCellDef="let element"> {{element.endTime | date:'d.LL.yy HH:mm:ss'}} </mat-cell>
+                                </ng-container>
+
+                               
+
+                                <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+                                <mat-row (click)="onRowClicked(row)" *matRowDef="let row; columns: displayedColumns;">
+                                </mat-row>
+                            </table>
+                        </cdk-virtual-scroll-viewport>
+                        <H3 *ngIf="avgRating">{{surname}} {{name}} -- średnia ocena: {{avgRating}}</H3>
+                    </mat-card-content>
+                    
+                </mat-card>
+            </mat-grid-tile>
+         
+            <mat-grid-tile>
+                <mat-card class="example-card">
+                    <mat-card-header class="header">
+                        <mat-card-title>Trasa kursu</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <google-map height="430px" width="100%" [zoom]="zoom" [center]="center" [options]="options">
+
+                            <map-marker #somemarker="mapMarker" *ngFor="let marker of markers"
+                                [position]="marker.position" [label]="marker.label" [title]="marker.title"
+                                [options]="marker.options" (mapClick)="openInfo(somemarker, marker.info)">
+                            </map-marker>
+                            <map-polyline *ngFor="let polyline of polylines" [options]="polyline.polylineOptions"
+                                [path]="polyline.path">
+
+                            </map-polyline>
+
+                            <map-info-window>{{ infoContent }}</map-info-window>
+                        </google-map>
+                    </mat-card-content>
+                </mat-card>
+
+            </mat-grid-tile>
+
+
+        </mat-grid-list>
+    </mat-card-content>
+</mat-card>

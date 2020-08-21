@@ -32,7 +32,11 @@ export class APIService {
     return this.http.get(API_URL + 'getDriverLocation/' + driverId);
   }
 
-  getAdminBoard(): Observable<any> {
-    return this.http.get(API_URL + 'admin', { responseType: 'text' });
+  getCompleteRides(): Observable<any> {
+    return this.http.get(API_URL + 'getCompleteRides');
+  }
+
+  getDriverRating(driverId: number): Observable<any> {
+    return this.http.get(API_URL + 'getAvgRating/' + driverId);
   }
 }

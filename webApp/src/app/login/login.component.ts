@@ -2,6 +2,7 @@ import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import {LoginRequest} from '../models/LoginReques';
 import {AuthServiceService} from '../services/auth-service.service';
 import {TokenStorageService} from '../services/token-storage.service'
+import { Router } from "@angular/router";
 
 @Component({
   selector: 'app-login',
@@ -14,7 +15,8 @@ export class LoginComponent implements OnInit {
   errorMessage = '';
 
   constructor(private tokenStorageService: TokenStorageService,
-    private authService: AuthServiceService) { }
+    private authService: AuthServiceService,
+    private router: Router) { }
 
   ngOnInit(): void {
     
@@ -27,8 +29,7 @@ export class LoginComponent implements OnInit {
         console.log(data)
         this.tokenStorageService.saveJWTToken(data.accessToken);
         this.tokenStorageService.saveUserDetails(data);
-
-        this.reloadPage();
+        this.loadPage();
       },
       err => {
         this.errorMessage = err.error.message;
@@ -39,4 +40,9 @@ export class LoginComponent implements OnInit {
   reloadPage(): void {
     window.location.reload();
   }
+
+  loadPage():void {
+    this.router.navigate(["/newRide"])
+  }
+
 }

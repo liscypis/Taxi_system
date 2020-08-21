@@ -97,10 +97,26 @@ public class RideController {
         else
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rides not found");
     }
+    @GetMapping("/getCompleteRides")
+    public ResponseEntity<?> getCompleteRides() {
+        List<RideDTO> rideList = rideService.getCompleteRides();
+        if(rideList != null)
+            return ResponseEntity.ok(rideList);
+        else
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rides not found");
+    }
 
     @PutMapping("/setRideRate")
     public ResponseEntity<Message> setRideRate(@Valid @RequestBody RideRating request) {
         return ResponseEntity.ok(rideService.setRideRate(request));
     }
 
+    @GetMapping("/getAvgRating/{driverId}")
+    public ResponseEntity<?> getAvgRating(@PathVariable("driverId") Long id) {
+        Float avgRating = rideService.getAvgRating(id);
+        if(avgRating != null)
+            return ResponseEntity.ok(new Message(avgRating.toString()));
+        else
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "driver not found");
+    }
 }

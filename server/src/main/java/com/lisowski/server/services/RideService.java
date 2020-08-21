@@ -92,7 +92,7 @@ public class RideService {
         if (optRide.isPresent()) {
             Ride ride = optRide.get();
             if (request.getConfirm()) {
-                if(request.getNoApp())
+                if (request.getNoApp())
                     ride.setRideStatus(ERideStatus.NO_APP.name());
                 else
                     ride.setRideStatus(ERideStatus.ON_THE_WAY_TO_CLIENT.name());
@@ -254,15 +254,39 @@ public class RideService {
     }
 
     public List<RideDetailsResponse> getActiveRides() {
-        List<String> listOfStatus = List.of(ERideStatus.NO_APP.name(), ERideStatus.ON_THE_WAY_TO_CLIENT.name(), ERideStatus.ON_THE_WAY_TO_DEST.name(),ERideStatus.WAITING_FOR_USER.name());
+        List<String> listOfStatus = List.of(ERideStatus.NO_APP.name(), ERideStatus.ON_THE_WAY_TO_CLIENT.name(), ERideStatus.ON_THE_WAY_TO_DEST.name(), ERideStatus.WAITING_FOR_USER.name());
         Optional<List<Ride>> listOfRides = rideRepository.findByRideStatusIn(listOfStatus);
         return listOfRides.map(rides -> rides.stream().map(RideDetailsResponse::new).collect(Collectors.toList())).orElse(null);
     }
+
 
     public Message setRideRate(RideRating request) {
         Ride ride = rideRepository.findById(request.getId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ride not found"));
         ride.getRideDetails().setRating(request.getRate());
         rideRepository.save(ride);
         return new Message("Rating saved successfully.");
+    }
+
+    public List<RideDTO> getCompleteRides() {
+        List<String> listOfStatus = List.of(ERideStatus.COMPLETE.name());
+        Optional<List<Ride>> listOfRides = rideRepository.findByRideStatusIn(listOfStatus);
+        return listOfRides.map(rides -> rides.stream().map(RideDTO::new).collect(Collectors.toList())).orElse(null);
+    }
+
+    public Float getAvgRating(Long id) {
+        List<RideDTO> driverRides = getDriverRides(id);
+        if (driverRides == null)
+            return null;
+        else
+            return calculateAvgDriverRating(driverRides);
+    }
+
+    private Float calculateAvgDriverRating(List<RideDTO> riteList) {
+        int sum = 0;
+        for (RideDTO ride : riteList)
+            sum += ride.getRating();
+
+        float avg = (float) sum / riteList.size();
+        return (float) (Math.round(avg * 100.0) / 100.0);
     }
 }

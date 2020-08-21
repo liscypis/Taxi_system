@@ -16,3 +16,7 @@
     color: #f44336; /* Red */
     font-weight: bold;
 }
+
+::ng-deep .header .mat-card-header-text {
+  margin: 0 !important;
+}

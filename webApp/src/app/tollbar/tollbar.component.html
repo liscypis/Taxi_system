@@ -4,7 +4,7 @@
   <div *ngIf="isLoggedIn">
     <a *ngIf="admin || dispatcher" mat-button [routerLink]="'/newRide'"> Nowy kurs </a>
     <a *ngIf="admin || dispatcher" mat-button [routerLink]="'/activeRides'">Aktywne kursy </a>
-    <a *ngIf="admin" mat-button [routerLink]="'/history'">Zakończone kursy </a>
+    <a *ngIf="admin" mat-button [routerLink]="'/rideHistory'">Zakończone kursy </a>
     <a *ngIf="admin"  mat-button [routerLink]="'/contacts'"> Zarządzanie </a>
 
   </div>

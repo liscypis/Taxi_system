@@ -26,6 +26,7 @@ import {MatTableModule} from '@angular/material/table';
 import {TableVirtualScrollModule} from 'ng-table-virtual-scroll';
 import {CdkScrollableModule} from '@angular/cdk/scrolling';
 import { ScrollingModule } from '@angular/cdk/scrolling';
+import { RideHistoryComponent } from './ride-history/ride-history.component';
 
 
 @NgModule({
@@ -35,7 +36,8 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
     AdminComponent,
     LoginComponent,
     NewRideComponent,
-    AcriveRidesComponent
+    AcriveRidesComponent,
+    RideHistoryComponent
   ],
   imports: [
     BrowserModule,
