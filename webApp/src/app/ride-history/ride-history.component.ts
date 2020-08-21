@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { APIService } from '../services/api.service';
 import { Ride } from '../models/Ride'
 import { GoogleMap, MapInfoWindow, MapMarker } from '@angular/google-maps';
+import { TokenStorageService } from '../services/token-storage.service';
 
 
 @Component({
@@ -12,6 +13,8 @@ import { GoogleMap, MapInfoWindow, MapMarker } from '@angular/google-maps';
 export class RideHistoryComponent implements OnInit {
   @ViewChild(GoogleMap, { static: false }) map: GoogleMap;
   @ViewChild(MapInfoWindow, { static: false }) info: MapInfoWindow;
+
+  isLoggedIn = false;
 
   displayedColumns: string[] = ['idRide', 'idDriver', 'driverName', 'driverSurname', 'userName', 
   'userSurname', 'rating', 'price', 'timeStart', 'arrivalTime', 'endTime'];
@@ -37,10 +40,14 @@ export class RideHistoryComponent implements OnInit {
     maxZoom: 18,
     minZoom: 8,
   }
-  constructor(private apiService: APIService) { }
+  constructor(private apiService: APIService,
+    private tokenStorageService: TokenStorageService) { }
 
   ngOnInit(): void {
-    this.getCompleteRides();
+    if (this.tokenStorageService.getJWTToken()) {
+      this.isLoggedIn = true;
+      this.getCompleteRides();
+    }
   }
 
   getCompleteRides(): void {

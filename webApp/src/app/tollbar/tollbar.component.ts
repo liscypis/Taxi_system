@@ -33,11 +33,6 @@ ngOnInit(): void {
       this.surname = user.surname;
     }
   }
-
-  logout(): void {
-    this.tokenStorageService.signOut();
-    window.location.reload();
-  }
-  
+ 
 
 }

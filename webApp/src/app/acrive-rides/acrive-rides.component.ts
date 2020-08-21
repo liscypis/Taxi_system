@@ -4,6 +4,7 @@ import { RideDetailsResponse } from '../models/RideDetailsResponse'
 import { MapInfoWindow, MapMarker, GoogleMap } from '@angular/google-maps';
 import { Subscription, timer } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { TokenStorageService } from '../services/token-storage.service';
 
 
 
@@ -19,6 +20,8 @@ export class AcriveRidesComponent implements OnInit {
   displayedColumns: string[] = ['idRide', 'driverPhone', 'userPhone'];
   dataSource: Array<RideDetailsResponse>;
   isData = false;
+
+  isLoggedIn = false;
 
   subscription: Subscription;
 
@@ -37,11 +40,16 @@ export class AcriveRidesComponent implements OnInit {
     maxZoom: 18,
     minZoom: 8,
   }
-  constructor(private apiService: APIService) { }
+  constructor(private apiService: APIService,
+    private tokenStorageService: TokenStorageService) { }
 
 
   ngOnInit(): void {
-    this.getAcriveRides();
+    if (this.tokenStorageService.getJWTToken()) {
+      this.getAcriveRides();
+      this.isLoggedIn = true;
+      console.log(this.tokenStorageService.getJWTToken());
+    }
   }
 
 
@@ -83,10 +91,10 @@ export class AcriveRidesComponent implements OnInit {
     })
   }
   addMarker(row: String, type: String, info: String) {
-    if (this.markers.length == 3){
+    if (this.markers.length == 3) {
       this.markers.pop();
     }
-    
+
     let splitetLoc = row.split(",");
     let pinImage = "";
     if (type == 'S')
@@ -113,7 +121,7 @@ export class AcriveRidesComponent implements OnInit {
 
   getDriverLocation(driverId: number): void {
     if (this.subscription != null)
-       this.subscription.unsubscribe();
+      this.subscription.unsubscribe();
 
     this.subscription = timer(0, 10000).pipe(
       switchMap(() => this.apiService.getDriverLocation(driverId))).subscribe(
@@ -128,9 +136,8 @@ export class AcriveRidesComponent implements OnInit {
       );
   }
 
-
-
   ngOnDestroy() {
-    this.subscription.unsubscribe();
+    if (this.subscription instanceof Subscription)
+      this.subscription.unsubscribe();
   }
 }

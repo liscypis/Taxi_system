@@ -5,11 +5,11 @@
     <a *ngIf="admin || dispatcher" mat-button [routerLink]="'/newRide'"> Nowy kurs </a>
     <a *ngIf="admin || dispatcher" mat-button [routerLink]="'/activeRides'">Aktywne kursy </a>
     <a *ngIf="admin" mat-button [routerLink]="'/rideHistory'">Zakończone kursy </a>
-    <a *ngIf="admin"  mat-button [routerLink]="'/contacts'"> Zarządzanie </a>
+    <a *ngIf="admin"  mat-button [routerLink]="'/admin'"> Panel admina </a>
 
   </div>
   <span class="example-spacer"></span>
   <a mat-button > {{ name }}  {{ surname }}</a>
-  <a *ngIf="isLoggedIn" mat-button (click)="logout()"> Wyloguj </a>
+  <a *ngIf="isLoggedIn" mat-button [routerLink]="'/logout'"> Wyloguj </a>
   <a *ngIf="!isLoggedIn" mat-button [routerLink]="'/login'"> Zaloguj </a>
 </mat-toolbar>

@@ -12,7 +12,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {MatCardModule} from '@angular/material/card';
 import {MatInputModule} from '@angular/material/input';
 import { AdminComponent } from './admin/admin.component';
@@ -23,10 +23,12 @@ import {MatGridListModule} from '@angular/material/grid-list';
 import { AcriveRidesComponent } from './acrive-rides/acrive-rides.component';
 import { GoogleMapsModule } from '@angular/google-maps';
 import {MatTableModule} from '@angular/material/table';
-import {TableVirtualScrollModule} from 'ng-table-virtual-scroll';
 import {CdkScrollableModule} from '@angular/cdk/scrolling';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { RideHistoryComponent } from './ride-history/ride-history.component';
+import { LogoutComponent } from './logout/logout.component';
+import {MatTabsModule} from '@angular/material/tabs';
+import {MatRadioModule} from '@angular/material/radio';
 
 
 @NgModule({
@@ -37,7 +39,8 @@ import { RideHistoryComponent } from './ride-history/ride-history.component';
     LoginComponent,
     NewRideComponent,
     AcriveRidesComponent,
-    RideHistoryComponent
+    RideHistoryComponent,
+    LogoutComponent
   ],
   imports: [
     BrowserModule,
@@ -58,7 +61,10 @@ import { RideHistoryComponent } from './ride-history/ride-history.component';
     GoogleMapsModule,
     MatTableModule,
     CdkScrollableModule,
-    ScrollingModule
+    ScrollingModule,
+    MatTabsModule,
+    MatRadioModule,
+    ReactiveFormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -5,6 +5,7 @@ import { formatDate } from "@angular/common";
 
 import { RideRequest } from '../models/RideRequest'
 import { APIService } from '../services/api.service'
+import { TokenStorageService } from '../services/token-storage.service';
 
 
 @Component({
@@ -13,6 +14,7 @@ import { APIService } from '../services/api.service'
   styleUrls: ['./new-ride.component.css']
 })
 export class NewRideComponent implements OnInit {
+  isLoggedIn = false;
 
   carInfo = new DriverInfoResponse();
   rideRequest = new RideRequest();
@@ -30,9 +32,12 @@ export class NewRideComponent implements OnInit {
 
 
 
-  constructor(private apiService: APIService) { }
+  constructor(private apiService: APIService,
+    private tokenStorageService: TokenStorageService) { }
 
   ngOnInit(): void {
+    if (this.tokenStorageService.getJWTToken()) 
+      this.isLoggedIn = true;
   }
 
   initOrder(): void {

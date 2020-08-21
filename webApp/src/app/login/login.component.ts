@@ -19,7 +19,8 @@ export class LoginComponent implements OnInit {
     private router: Router) { }
 
   ngOnInit(): void {
-    
+    if(this.tokenStorageService.getJWTToken())
+    this.loadPage();
   }
 
   login() :void {
@@ -27,9 +28,13 @@ export class LoginComponent implements OnInit {
     this.authService.login(this.data).subscribe(
       data => {
         console.log(data)
+        if(data.roles.includes('ROLE_USER') || data.roles.includes('ROLE_DRIVER') ){
+            this.errorMessage = "Brak uprawnień";
+            return
+        }
         this.tokenStorageService.saveJWTToken(data.accessToken);
         this.tokenStorageService.saveUserDetails(data);
-        this.loadPage();
+        this.reloadPage();
       },
       err => {
         this.errorMessage = err.error.message;

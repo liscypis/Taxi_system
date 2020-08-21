@@ -1,0 +1,23 @@
+.example-card {
+    width: 1000px;
+    height: 500px;
+  }
+  ::ng-deep .header .mat-card-header-text {
+    margin: 0 !important;
+}
+.mat-tab-group {
+    margin-bottom: 48px;
+  }
+
+:host>>>.mat-figure {
+    align-items: start !important;
+}
+.mat-form-field{
+    padding-left: 10px;
+    padding-right: 10px;
+}
+.mat-radio-button ~ .mat-radio-button {
+    margin-left: 16px;
+  }
+
+
