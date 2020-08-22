@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { RideConfirm } from '../models/RideConfirm';
 import { RideRequest } from '../models/RideRequest';
+import { RegisterRequest } from '../models/RegisterRequest';
 
 const API_URL = 'http://localhost:8081/api/test/';
 

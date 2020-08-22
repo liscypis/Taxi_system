@@ -16,28 +16,31 @@
                                 <form [formGroup]="dataForm" (ngSubmit)="onSubmit()">
                                     <mat-form-field appearance="outline">
                                         <mat-label>Imię</mat-label>
-                                        <input matInput placeholder="Imię" formControlName="name" required>
+                                        <input matInput placeholder="Imię" formControlName="name">
                                     </mat-form-field>
                                     <mat-form-field appearance="outline">
                                         <mat-label>Nazwisko</mat-label>
-                                        <input matInput placeholder="Nazwisko" formControlName="surname" required>
+                                        <input matInput placeholder="Nazwisko" formControlName="surname" >
                                     </mat-form-field>
                                     <mat-form-field appearance="outline">
                                         <mat-label>Login</mat-label>
-                                        <input matInput placeholder="Login" formControlName="login" required>
+                                        <input matInput placeholder="Login" formControlName="login" >
+                                        <mat-hint *ngIf="loginInUse" class="warn">Login jest zajęty</mat-hint>
                                     </mat-form-field>
                                     <mat-form-field appearance="outline">
                                         <mat-label>Hasło</mat-label>
-                                        <input matInput placeholder="Hasło" type="password" formControlName="password"
-                                            required>
+                                        <input matInput placeholder="Hasło" type="password" formControlName="password">
                                     </mat-form-field>
                                     <mat-form-field appearance="outline">
                                         <mat-label>E-mail</mat-label>
-                                        <input matInput placeholder="E-mail" formControlName="email" required>
+                                        <input matInput placeholder="E-mail" formControlName="email" >
+                                        <mat-hint *ngIf="emailInUse" class="warn">Email jest zajęty</mat-hint>
                                     </mat-form-field>
                                     <mat-form-field appearance="outline">
                                         <mat-label>Numer telefonu</mat-label>
-                                        <input matInput placeholder="Numer telefonu" formControlName="phone" required>
+                                        <input matInput placeholder="Numer telefonu" formControlName="phone">
+                                        <mat-hint *ngIf="phoneInUse" class="warn">Email jest zajęty</mat-hint>
+
                                     </mat-form-field>
                                     <label>Typ pracownika </label>
                                     <mat-radio-group formControlName="role">
@@ -46,8 +49,9 @@
                                         <mat-radio-button value="admin" >Admin</mat-radio-button>
                                     </mat-radio-group>
                                     <button type="submit" mat-raised-button color="primary" [disabled]="!dataForm.valid">Dodaj</button>
-
+                                    
                                 </form>
+                                <h2 *ngIf="success" style="text-align: center; color: green;" >Pracownik dodany</h2>
                             </mat-card-content>
                         </mat-card>
                     </mat-grid-tile>
