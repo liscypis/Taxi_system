@@ -1,5 +1,6 @@
 package com.lisowski.server.repository;
 
+import com.lisowski.server.models.Car;
 import com.lisowski.server.models.enums.EStatus;
 import com.lisowski.server.models.Role;
 import com.lisowski.server.models.User;
@@ -17,6 +18,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUserName(String userName);
     Optional<User> findById(Long id);
     Optional<User> findByPhoneNum(String phoneNum);
+    Optional<User> findByEmail(String email);
     Optional<User> findByCarId(Long id);
 
     Boolean existsByPhoneNum(String phoneNum);
@@ -24,6 +26,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Boolean existsByEmail(String email);
 
     Optional<List<User>> findByRolesIn(Set<Role> roles);
+
+    Optional<List<User>> findByCarAndRolesIn(Car car, Set<Role> roles);
 
     @Query("SELECT u.id from User as u WHERE u.status.status = :status ")
     Optional<List<Long>> findIdsByStatus(@Param("status")EStatus status);

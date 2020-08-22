@@ -1,5 +1,6 @@
 package com.lisowski.server.DTO;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.lisowski.server.models.Car;
 import com.lisowski.server.models.Role;
 import com.lisowski.server.models.User;
@@ -37,4 +38,5 @@ public class UserDTO {
                 .map(item -> item.getRole().name())
                 .collect(Collectors.toList());
     }
+
 }

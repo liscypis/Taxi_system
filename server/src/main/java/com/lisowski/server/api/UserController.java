@@ -2,6 +2,8 @@ package com.lisowski.server.api;
 
 import com.lisowski.server.DTO.UserDTO;
 import com.lisowski.server.DTO.DriverPositionHistoryDTO;
+import com.lisowski.server.DTO.request.UpdateRequest;
+import com.lisowski.server.DTO.response.Message;
 import com.lisowski.server.models.DriverPositionHistory;
 import com.lisowski.server.models.User;
 import com.lisowski.server.repository.DriverPosHistRepository;
@@ -13,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,16 +30,28 @@ public class UserController {
     @Autowired
     DriverPosHistRepository driverPosHistRepository;
 
-    @Autowired
-    private UserRepository userRepository;
-
     @GetMapping("/usersbyrole/{role}")
-    public ResponseEntity<List<UserDTO>> authenticateUser(@PathVariable("role") String role) {
+    public ResponseEntity<List<UserDTO>> getUsers(@PathVariable("role") String role) {
         return userService.getUsersByRole(role);
     }
     @DeleteMapping("/deleteUser/{userID}")
     public ResponseEntity<?> editCar(@PathVariable("userID") Long id) {
         return userService.deleteUser(id);
+    }
+
+    @GetMapping("/driverWithoutCar")
+    public ResponseEntity<List<UserDTO>> getDriversWithoutCar() {
+        List<UserDTO> drivers = userService.getDriverWithoutCar();
+        if(drivers != null)
+            return ResponseEntity.ok(drivers);
+        else
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No drivers");
+    }
+
+    @PutMapping("/updateUser")
+    public ResponseEntity<Message> updateUser(@Valid @RequestBody UpdateRequest request) {
+        userService.updateUser(request);
+            return ResponseEntity.ok(new Message("User successfully edited"));
     }
 
 

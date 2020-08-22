@@ -1,6 +1,8 @@
 package com.lisowski.server.services;
 
+import com.lisowski.server.DTO.RideDTO;
 import com.lisowski.server.DTO.UserDTO;
+import com.lisowski.server.DTO.request.UpdateRequest;
 import com.lisowski.server.DTO.response.Message;
 import com.lisowski.server.models.enums.ERole;
 import com.lisowski.server.models.Role;
@@ -13,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -25,35 +28,36 @@ public class UserService {
     UserRepository userRepository;
     @Autowired
     RoleRepository roleRepository;
+    @Autowired
+    AuthenticationService authenticationService;
 
     public ResponseEntity<List<UserDTO>> getUsersByRole(String role) {
         Optional<Role> fRole = Optional.empty();
-        if(role.equals("user"))
+        if (role.equals("user"))
             fRole = roleRepository.findByRole(ERole.ROLE_USER);
-        if(role.equals("driver"))
+        if (role.equals("driver"))
             fRole = roleRepository.findByRole(ERole.ROLE_DRIVER);
-        if(role.equals("dispatcher"))
+        if (role.equals("dispatcher"))
             fRole = roleRepository.findByRole(ERole.ROLE_DISPATCHER);
-        if(role.equals("admin"))
+        if (role.equals("admin"))
             fRole = roleRepository.findByRole(ERole.ROLE_ADMIN);
 
-        if(fRole.isPresent()){
+        if (fRole.isPresent()) {
             Set<Role> roleDB = Set.of(fRole.get());
             Optional<List<User>> listOfUsers = userRepository.findByRolesIn(roleDB);
-            if(listOfUsers.isPresent()){
+            if (listOfUsers.isPresent()) {
                 List<UserDTO> foundUsers = listOfUsers.get().stream().map(usr -> new UserDTO(usr)).collect(Collectors.toList());
                 return ResponseEntity.ok(foundUsers);
             } else
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Users not found");
-        }
-        else
+        } else
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role");
     }
 
 
     public ResponseEntity<?> deleteUser(Long id) {
         Optional<User> userOptional = userRepository.findById(id);
-        if(userOptional.isPresent()){
+        if (userOptional.isPresent()) {
             userRepository.deleteById(id);
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found");
@@ -62,4 +66,31 @@ public class UserService {
     }
 
 
+    public List<UserDTO> getDriverWithoutCar() {
+        Role roleDriver = roleRepository.findByRole(ERole.ROLE_DRIVER).get();
+        Optional<List<User>> driver = userRepository.findByCarAndRolesIn(null, Set.of(roleDriver));
+        return driver.map(dri -> dri.stream().map(UserDTO::new).collect(Collectors.toList())).orElse(null);
+    }
+
+    public void updateUser(UpdateRequest request) {
+        User emailInUse = userRepository.findByEmail(request.getEmail()).orElse(null);
+        User phoneInUse = userRepository.findByPhoneNum(request.getPhoneNum()).orElse(null);
+        User loginInUse = userRepository.findByUserName(request.getUserName()).orElse(null);
+        if (emailInUse != null && !emailInUse.getId().equals(request.getId()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email in use");
+        if (phoneInUse != null && !phoneInUse.getId().equals(request.getId()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Phone in use");
+        if (loginInUse != null && !loginInUse.getId().equals(request.getId()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Login in use");
+
+        Set<Role> roles = authenticationService.checkRoles(new HashSet<>(request.getRoles()));
+        User edited = userRepository.findById(request.getId()).get();
+        edited.setPhoneNum(request.getPhoneNum());
+        edited.setRoles(roles);
+        edited.setName(request.getName());
+        edited.setSurname(request.getSurname());
+        edited.setUserName(request.getUserName());
+        edited.setEmail(request.getEmail());
+        userRepository.save(edited);
+    }
 }
