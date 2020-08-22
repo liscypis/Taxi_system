@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { RideConfirm } from '../models/RideConfirm';
 import { RideRequest } from '../models/RideRequest';
 import { RegisterRequest } from '../models/RegisterRequest';
+import { NewCarRequest } from '../models/NewCarRequest';
 
 const API_URL = 'http://localhost:8081/api/test/';
 
@@ -25,6 +26,11 @@ export class APIService {
     return this.http.post(API_URL + 'confirmRide', request);
   }
 
+  addCar(request: NewCarRequest): Observable<any> {
+    console.log(request)
+    return this.http.post(API_URL + 'addCar', request);
+  }
+
   getActiveRides(): Observable<any> {
     return this.http.get(API_URL + 'getActiveRides');
   }
@@ -40,4 +46,14 @@ export class APIService {
   getDriverRating(driverId: number): Observable<any> {
     return this.http.get(API_URL + 'getAvgRating/' + driverId);
   }
+
+  getDriverWithoutCar(): Observable<any> {
+    return this.http.get(API_URL + 'driverWithoutCar');
+  }
+
+  getAllCars(): Observable<any> {
+    return this.http.get(API_URL + 'getAllCars');
+  }
+
+  
 }

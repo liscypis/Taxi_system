@@ -3,7 +3,7 @@ package com.lisowski.driverapp
 object Constants {
 
     // Endpoints
-    const val BASE_URL = "http://192.168.8.112:8081/api/"
+    const val BASE_URL = "http://192.168.8.110:8081/api/"
     const val LOGIN_URL = "auth/signin"
     const val GET_RIDE_STATUS = "test/getRideStatus/{id}"
     const val CONFIRM_DRIVER_ARRIVE = "test/confirmDriverArrival/{id}"

@@ -56,6 +56,11 @@ public class DriverController {
         return ResponseEntity.ok(driverService.getDriverCar(id));
     }
 
+    @GetMapping("/getAllCars")
+    public ResponseEntity<List<CarDTO>> getAllCars() {
+        return ResponseEntity.ok(driverService.getCars());
+    }
+
 
 
 

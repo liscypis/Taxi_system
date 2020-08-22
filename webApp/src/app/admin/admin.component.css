@@ -24,4 +24,12 @@
   color: red;
 }
 
+.example-viewport {
+  height: 190px;
+  width: 100%;
+}
+table {
+width: 100%;
+}
+
 

@@ -2,6 +2,7 @@ package com.lisowski.server.services;
 
 import com.lisowski.server.DTO.CarDTO;
 import com.lisowski.server.DTO.DriverPositionHistoryDTO;
+import com.lisowski.server.DTO.RideDTO;
 import com.lisowski.server.DTO.request.AddCarRequest;
 import com.lisowski.server.DTO.request.LocationLog;
 import com.lisowski.server.DTO.request.StatusMessage;
@@ -18,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class DriverService {
@@ -128,4 +130,7 @@ public class DriverService {
         return new CarDTO(user);
     }
 
+    public List<CarDTO> getCars() {
+        return carRepository.findAll().stream().map(CarDTO::new).collect(Collectors.toList());
+    }
 }

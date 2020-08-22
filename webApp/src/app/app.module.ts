@@ -40,7 +40,7 @@ import {MatRadioModule} from '@angular/material/radio';
     NewRideComponent,
     AcriveRidesComponent,
     RideHistoryComponent,
-    LogoutComponent
+    LogoutComponent,
   ],
   imports: [
     BrowserModule,
