@@ -55,8 +55,7 @@ export class AdminComponent implements OnInit {
   })
 
   //edit car
-  displayedCarColumns: string[] = ['id', 'carModel', 'carBrand', 'color', 'registrationNumber', 'edit', 'delete'];
-  carDataSource: Array<CarInfo>;
+  
 
 
 
@@ -68,7 +67,6 @@ export class AdminComponent implements OnInit {
     if (this.tokenStorageService.getJWTToken()) {
       this.isLoggedIn = true;
       this.getDrivers();
-      this.getAllCars();
     }
   }
 
@@ -163,27 +161,11 @@ export class AdminComponent implements OnInit {
         this.carAdded = true;
         this.dataSource = null;
         this.getDrivers();
-
-        this.getAllCars();
       },
       err => {
         console.log(err.error.message)
       }
     );
   }
-
-
-  getAllCars(): void {
-    this.api.getAllCars().subscribe(
-      data => {
-        console.log(data);
-        this.carDataSource = data;
-      },
-      err => {
-        console.log(err.error.message)
-      }
-    );
-  }
-
 
 }

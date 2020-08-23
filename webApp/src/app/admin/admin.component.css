@@ -1,6 +1,6 @@
 .example-card {
     width: 1000px;
-    height: 500px;
+    
   }
   ::ng-deep .header .mat-card-header-text {
     margin: 0 !important;

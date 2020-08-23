@@ -29,6 +29,7 @@ import { RideHistoryComponent } from './ride-history/ride-history.component';
 import { LogoutComponent } from './logout/logout.component';
 import {MatTabsModule} from '@angular/material/tabs';
 import {MatRadioModule} from '@angular/material/radio';
+import { EditCarComponent } from './admin/edit-car/edit-car.component';
 
 
 @NgModule({
@@ -41,6 +42,7 @@ import {MatRadioModule} from '@angular/material/radio';
     AcriveRidesComponent,
     RideHistoryComponent,
     LogoutComponent,
+    EditCarComponent,
   ],
   imports: [
     BrowserModule,

@@ -1,0 +1,95 @@
+<mat-grid-list cols="2" rowHeight="340px">
+<mat-grid-tile>
+    <mat-card style="width: 500px;">
+        <mat-card-header>
+            <mat-card-title>Lista samochodów</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <cdk-virtual-scroll-viewport itemSize="50" style="height: 250px;"
+                class="example-viewport">
+                <table mat-table [dataSource]="carDataSource" class="mat-elevation-z8">
+
+                    <ng-container matColumnDef="id">
+                        <mat-header-cell *matHeaderCellDef> ID </mat-header-cell>
+                        <mat-cell *matCellDef="let element"> {{element.id}} </mat-cell>
+                    </ng-container>
+
+                    <ng-container matColumnDef="carBrand">
+                        <mat-header-cell *matHeaderCellDef> Marka </mat-header-cell>
+                        <mat-cell *matCellDef="let element"> {{element.carBrand}} </mat-cell>
+                    </ng-container>
+
+                    <ng-container matColumnDef="carModel">
+                        <mat-header-cell *matHeaderCellDef> Model </mat-header-cell>
+                        <mat-cell *matCellDef="let element"> {{element.carModel}} </mat-cell>
+                    </ng-container>
+
+                    <ng-container matColumnDef="color" >
+                        <mat-header-cell *matHeaderCellDef> Kolor </mat-header-cell>
+                        <mat-cell *matCellDef="let element"> {{element.color}} </mat-cell>
+                    </ng-container>
+
+                    <ng-container matColumnDef="registrationNumber">
+                        <mat-header-cell *matHeaderCellDef> Rejestracja </mat-header-cell>
+                        <mat-cell *matCellDef="let element"> {{element.registrationNumber}}
+                        </mat-cell>
+                    </ng-container>
+
+                    <ng-container matColumnDef="edit">
+                        <mat-header-cell *matHeaderCellDef>Akcja </mat-header-cell>
+                        <mat-cell *matCellDef="let row">
+                            <button mat-icon-button matTooltip="Click to Edit" (click)="onEditRowClicked(row)" class="iconbutton"
+                                color="primary">
+                                <mat-icon aria-label="Edit">edit</mat-icon>
+                            </button>
+                                <button mat-icon-button matTooltip="Click to Delete" (click)="onDeleteRowClicked(row)" class="iconbutton"
+                                color="warn">
+                                <mat-icon aria-label="Delete">delete</mat-icon>
+                            </button>
+                        </mat-cell>
+                    </ng-container>
+
+                    <mat-header-row *matHeaderRowDef="displayedCarColumns"></mat-header-row>
+                    <mat-row 
+                        *matRowDef="let row; columns: displayedCarColumns;">
+                    </mat-row>
+                </table>
+            </cdk-virtual-scroll-viewport>
+        </mat-card-content>
+    </mat-card>
+</mat-grid-tile>
+
+<mat-grid-tile>
+
+    <mat-card style="width: 450px;">
+        <mat-card-header>
+            <mat-card-title>Dane samochodu</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <form [formGroup]="carForm" (ngSubmit)="editCar()" #formDirective="ngForm" >
+                <mat-form-field appearance="outline">
+                    <mat-label>Marka</mat-label>
+                    <input matInput placeholder="Marka" formControlName="mark">
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                    <mat-label>Model</mat-label>
+                    <input matInput placeholder="Model" formControlName="model">
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                    <mat-label>Kolor</mat-label>
+                    <input matInput placeholder="Kolor" formControlName="color">
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                    <mat-label>Rejestracja</mat-label>
+                    <input matInput placeholder="Rejestracja" formControlName="registrationNumber">
+                </mat-form-field>
+
+                <button type="submit" mat-raised-button color="primary"
+                    [disabled]="!carForm.valid ">Zapisz</button>
+            </form>
+        </mat-card-content>
+    </mat-card>
+
+</mat-grid-tile>
+
+</mat-grid-list>

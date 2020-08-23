@@ -1,0 +1,17 @@
+.example-viewport {
+    height: 290px;
+    width: 100%;
+  }
+  table {
+  width: 100%;
+  }
+
+  .mat-form-field{
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.mat-column-color {
+  width: 20% !important;
+}
+

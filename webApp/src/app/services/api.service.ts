@@ -5,6 +5,7 @@ import { RideConfirm } from '../models/RideConfirm';
 import { RideRequest } from '../models/RideRequest';
 import { RegisterRequest } from '../models/RegisterRequest';
 import { NewCarRequest } from '../models/NewCarRequest';
+import { CarInfo } from '../models/CarInfo';
 
 const API_URL = 'http://localhost:8081/api/test/';
 
@@ -53,6 +54,16 @@ export class APIService {
 
   getAllCars(): Observable<any> {
     return this.http.get(API_URL + 'getAllCars');
+  }
+
+  updateCar(request: CarInfo): Observable<any> {
+    console.log(request)
+    return this.http.post(API_URL + 'editCar', request);
+  }
+
+  deleteCar(idCar: number): Observable<any> {
+    console.log(idCar)
+    return this.http.delete(API_URL + 'deleteCar/' + idCar);
   }
 
   
