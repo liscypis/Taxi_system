@@ -7,12 +7,15 @@ import com.lisowski.server.DTO.response.Message;
 import com.lisowski.server.models.enums.ERole;
 import com.lisowski.server.models.Role;
 import com.lisowski.server.models.User;
+import com.lisowski.server.repository.DriverPosHistRepository;
+import com.lisowski.server.repository.RideRepository;
 import com.lisowski.server.repository.RoleRepository;
 import com.lisowski.server.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
@@ -30,6 +33,10 @@ public class UserService {
     RoleRepository roleRepository;
     @Autowired
     AuthenticationService authenticationService;
+    @Autowired
+    RideRepository rideRepository;
+    @Autowired
+    DriverPosHistRepository histRepository;
 
     public ResponseEntity<List<UserDTO>> getUsersByRole(String role) {
         Optional<Role> fRole = Optional.empty();
@@ -54,11 +61,20 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role");
     }
 
-
+    //TODO poprawic
+    @Transactional
     public ResponseEntity<?> deleteUser(Long id) {
         Optional<User> userOptional = userRepository.findById(id);
         if (userOptional.isPresent()) {
-            userRepository.deleteById(id);
+            User u = userOptional.get();
+            rideRepository.deleteAllByUser(u);
+            rideRepository.deleteAllByDriver(u);
+            rideRepository.flush();
+            histRepository.deleteAllByDriver(u);
+            histRepository.flush();
+            userRepository.delete(u);
+//            userRepository.deleteById(u.getId());
+//            userRepository.deleteById(id);
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found");
         }

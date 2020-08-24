@@ -1,0 +1,24 @@
+.example-viewport {
+    height: 290px;
+    width: 100%;
+  }
+  table {
+  width: 100%;
+  }
+
+  .mat-form-field{
+    padding-left: 10px;
+    padding-right: 10px;
+}
+::ng-deep .header .mat-card-header-text {
+    margin: 0 !important;
+}
+
+.mat-radio-button ~ .mat-radio-button {
+    margin-left: 16px;
+  }
+
+  .warn{
+    color: red;
+  }
+  

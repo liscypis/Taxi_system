@@ -39,7 +39,7 @@
                                     <mat-form-field appearance="outline">
                                         <mat-label>Numer telefonu</mat-label>
                                         <input matInput placeholder="Numer telefonu" formControlName="phone">
-                                        <mat-hint *ngIf="phoneInUse" class="warn">Email jest zajęty</mat-hint>
+                                        <mat-hint *ngIf="phoneInUse" class="warn">Telefon jest zajęty</mat-hint>
 
                                     </mat-form-field>
                                     <label>Typ pracownika </label>
@@ -143,6 +143,11 @@
 
             <mat-tab label="Edycja auta">
                 <app-edit-car></app-edit-car>
+
+            </mat-tab>
+
+            <mat-tab label="Edycja użytkowników">
+                <app-edit-user></app-edit-user>
 
             </mat-tab>
 

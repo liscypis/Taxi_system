@@ -1,7 +1,7 @@
 package com.lisowski.server.repository;
 
 import com.lisowski.server.models.Ride;
-import lombok.extern.java.Log;
+import com.lisowski.server.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -18,5 +18,8 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
     Optional<List<Ride>> findByRideStatusIn(List<String> notComplete);
 
     Optional<Ride> findByDriver_IdAndRideStatusIn(Long id, List<String> noAppOrToUser);
+
+    Integer deleteAllByUser(User u);
+    Integer deleteAllByDriver(User u);
 
 }

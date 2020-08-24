@@ -6,6 +6,7 @@ import { RideRequest } from '../models/RideRequest';
 import { RegisterRequest } from '../models/RegisterRequest';
 import { NewCarRequest } from '../models/NewCarRequest';
 import { CarInfo } from '../models/CarInfo';
+import { UpdateUser } from '../models/UpdateUser';
 
 const API_URL = 'http://localhost:8081/api/test/';
 
@@ -62,8 +63,22 @@ export class APIService {
   }
 
   deleteCar(idCar: number): Observable<any> {
-    console.log(idCar)
+    console.log(idCar);
     return this.http.delete(API_URL + 'deleteCar/' + idCar);
+  }
+
+  updateUser(request:UpdateUser) :Observable<any> {
+    console.log(request);
+    return this.http.put(API_URL + 'updateUser', request);
+  }
+
+  getUserByRole(role:String):Observable<any> {
+    return this.http.get(API_URL + 'usersbyrole/' + role);
+  }
+
+  deleteUser(id: number): Observable<any> {
+    console.log(id);
+    return this.http.delete(API_URL + 'deleteUser/' + id);
   }
 
   

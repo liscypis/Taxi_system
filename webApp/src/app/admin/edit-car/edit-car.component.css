@@ -11,7 +11,7 @@
     padding-right: 10px;
 }
 
-.mat-column-color {
-  width: 20% !important;
+.mat-column-edit {
+  flex: 0 0 150px !important;
+  white-space: unset !important;
 }
-

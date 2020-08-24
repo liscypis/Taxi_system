@@ -30,6 +30,8 @@ import { LogoutComponent } from './logout/logout.component';
 import {MatTabsModule} from '@angular/material/tabs';
 import {MatRadioModule} from '@angular/material/radio';
 import { EditCarComponent } from './admin/edit-car/edit-car.component';
+import { EditUserComponent } from './admin/edit-user/edit-user.component';
+import { MatSelectModule } from '@angular/material/select';
 
 
 @NgModule({
@@ -43,6 +45,7 @@ import { EditCarComponent } from './admin/edit-car/edit-car.component';
     RideHistoryComponent,
     LogoutComponent,
     EditCarComponent,
+    EditUserComponent,
   ],
   imports: [
     BrowserModule,
@@ -66,7 +69,8 @@ import { EditCarComponent } from './admin/edit-car/edit-car.component';
     ScrollingModule,
     MatTabsModule,
     MatRadioModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatSelectModule
   ],
   providers: [],
   bootstrap: [AppComponent]

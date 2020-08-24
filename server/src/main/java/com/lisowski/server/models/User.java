@@ -35,7 +35,7 @@ public class User {
     @Column(unique = true, length = 9, nullable = false)
     private String phoneNum;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "car_id", referencedColumnName = "id")
     private Car car;
 
@@ -51,15 +51,15 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "status_id"))
     private Status status;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Set<Ride> ride;
 
-    @OneToMany(mappedBy = "driver")
+    @OneToMany(mappedBy = "driver", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Set<Ride> rideDriver;
 
 
 //    @JsonBackReference
-    @OneToOne(mappedBy = "driver")
+    @OneToOne(mappedBy = "driver", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private DriverPositionHistory driverPositionHistory;
 
 }
