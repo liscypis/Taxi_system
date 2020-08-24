@@ -55,11 +55,15 @@ export class EditUserComponent implements OnInit {
       data => {
         console.log(data.msg);
         this.dataSource = data;
+        if(role == 'dispatcher'){
+          this.dataSource = this.dataSource.filter(item => !item.roles.includes('ROLE_ADMIN'));
+        }
       },
       err => {
         console.log(err.error.message);
       }
     );
+    
   }
 
   changeRole(value): void {
