@@ -1,0 +1,15 @@
+.example-viewport {
+    height: 290px;
+    width: 100%;
+  }
+  table {
+  width: 100%;
+  }
+
+  .selected {
+    background-color:#e3d3ff;
+  }
+
+  .example-card {
+    width : 400px;
+}

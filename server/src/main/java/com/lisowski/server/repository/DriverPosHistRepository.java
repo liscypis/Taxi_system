@@ -18,5 +18,7 @@ public interface DriverPosHistRepository extends JpaRepository<DriverPositionHis
             "WHERE d.id IN (SELECT MAX(d.id) FROM d WHERE d.driver.id in :ids GROUP BY d.driver.id ) ")
     List<DriverPositionHistoryDTO> findLastPositions(@Param("ids") List<Long> ids);
 
+    List<DriverPositionHistory> findAllByDriver_Id(Long id);
+
     void deleteAllByDriver(User u);
 }

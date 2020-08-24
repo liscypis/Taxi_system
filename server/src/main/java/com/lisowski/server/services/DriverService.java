@@ -125,6 +125,10 @@ public class DriverService {
     public String getDriverPosition(Long driverId) {
         return  driverPosHistRepository.findLastPositions(List.of(driverId)).get(0).getLocation();
     }
+    public List<DriverPositionHistoryDTO> getDriverLocations(Long id) {
+        return driverPosHistRepository.findAllByDriver_Id(id).stream().map(DriverPositionHistoryDTO::new).collect(Collectors.toList());
+    }
+
     public CarDTO getDriverCar(Long id){
         User user = userRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));;
         return new CarDTO(user);

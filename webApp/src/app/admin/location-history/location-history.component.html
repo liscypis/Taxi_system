@@ -1,0 +1,86 @@
+<mat-grid-list cols="2" rowHeight="340px">
+    <mat-grid-tile>
+        <mat-card style="width: 430px;">
+            <mat-card-header>
+                <mat-card-title>Lista kierowców</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <cdk-virtual-scroll-viewport itemSize="50" style="height: 250px;" class="example-viewport">
+                    <table mat-table [dataSource]="driverDataSource" class="mat-elevation-z8">
+
+                        <ng-container matColumnDef="id">
+                            <mat-header-cell *matHeaderCellDef> ID </mat-header-cell>
+                            <mat-cell *matCellDef="let element"> {{element.id}} </mat-cell>
+                        </ng-container>
+
+                        <ng-container matColumnDef="name">
+                            <mat-header-cell *matHeaderCellDef> Imię </mat-header-cell>
+                            <mat-cell *matCellDef="let element"> {{element.name}} </mat-cell>
+                        </ng-container>
+
+                        <ng-container matColumnDef="surname">
+                            <mat-header-cell *matHeaderCellDef> Nazwisko </mat-header-cell>
+                            <mat-cell *matCellDef="let element"> {{element.surname}} </mat-cell>
+                        </ng-container>
+
+                        <mat-header-row *matHeaderRowDef="displayedDiverColumns"></mat-header-row>
+                        <mat-row *matRowDef="let row; columns: displayedDiverColumns;" (click)="onRowDriverClicked(row)" [ngClass]="{ 'selected': row === selectedRow }">
+                        </mat-row>
+                    </table>
+                </cdk-virtual-scroll-viewport>
+            </mat-card-content>
+        </mat-card>
+    </mat-grid-tile>
+
+
+
+    <mat-grid-tile>
+        <mat-card style="width: 430px;">
+            <mat-card-header>
+                <mat-card-title>Lista lokalizacji</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <cdk-virtual-scroll-viewport itemSize="50" style="height: 250px;" class="example-viewport">
+                    <table mat-table [dataSource]="locationDataSource" class="mat-elevation-z8">
+
+                        <ng-container matColumnDef="data">
+                            <mat-header-cell *matHeaderCellDef> Data </mat-header-cell>
+                            <mat-cell *matCellDef="let element"> {{element.data | date:'dd.LL.yyyy HH:mm:ss'}} </mat-cell>
+                        </ng-container>
+
+                        <ng-container matColumnDef="location">
+                            <mat-header-cell *matHeaderCellDef> Lokalizacja </mat-header-cell>
+                            <mat-cell *matCellDef="let element"> {{element.location}} </mat-cell>
+                        </ng-container>
+
+        
+                        <mat-header-row *matHeaderRowDef="displayedLocationColumns"></mat-header-row>
+                        <mat-row *matRowDef="let row; columns: displayedLocationColumns;"
+                        (click)="onRowLocClicked(row)" [ngClass]="{ 'selected': row === selectedLocRow }">
+                        </mat-row>
+                    </table>
+                </cdk-virtual-scroll-viewport>
+            </mat-card-content>
+        </mat-card>
+    </mat-grid-tile>
+</mat-grid-list>
+
+<mat-grid-list cols="1" rowHeight="340px">
+<mat-grid-tile>
+    <mat-card class="example-card">
+        <mat-card-header class="header">
+            <mat-card-title>Lokalizacja</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <google-map height="230px" width="100%" [zoom]="zoom" [center]="center" [options]="options">
+
+                <map-marker #somemarker="mapMarker" *ngFor="let marker of markers"
+                    [position]="marker.position" [label]="marker.label" [title]="marker.title"
+                    [options]="marker.options" (mapClick)="openInfo(somemarker, marker.info)">
+                </map-marker>
+            </google-map>
+        </mat-card-content>
+    </mat-card>
+
+</mat-grid-tile>
+</mat-grid-list>

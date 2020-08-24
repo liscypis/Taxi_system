@@ -32,6 +32,7 @@ import {MatRadioModule} from '@angular/material/radio';
 import { EditCarComponent } from './admin/edit-car/edit-car.component';
 import { EditUserComponent } from './admin/edit-user/edit-user.component';
 import { MatSelectModule } from '@angular/material/select';
+import { LocationHistoryComponent } from './admin/location-history/location-history.component';
 
 
 @NgModule({
@@ -46,6 +47,7 @@ import { MatSelectModule } from '@angular/material/select';
     LogoutComponent,
     EditCarComponent,
     EditUserComponent,
+    LocationHistoryComponent,
   ],
   imports: [
     BrowserModule,

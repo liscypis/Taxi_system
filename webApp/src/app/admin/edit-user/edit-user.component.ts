@@ -79,15 +79,18 @@ export class EditUserComponent implements OnInit {
     );
   }
   onEditRowClicked(row): void {
-    this.idUser = row.id;
-    this.dataForm.setValue({
-      name: row.name,
-      surname: row.surname,
-      login: row.userName,
-      email: row.email,
-      phone: row.phoneNum,
-      role: this.selectedRole
-    })
+    if(row.userName != "") {
+      this.idUser = row.id;
+      this.dataForm.setValue({
+        name: row.name,
+        surname: row.surname,
+        login: row.userName,
+        email: row.email,
+        phone: row.phoneNum,
+        role: this.selectedRole
+      })
+    }
+   
 
   }
 

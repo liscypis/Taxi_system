@@ -67,12 +67,12 @@ export class APIService {
     return this.http.delete(API_URL + 'deleteCar/' + idCar);
   }
 
-  updateUser(request:UpdateUser) :Observable<any> {
+  updateUser(request: UpdateUser): Observable<any> {
     console.log(request);
     return this.http.put(API_URL + 'updateUser', request);
   }
 
-  getUserByRole(role:String):Observable<any> {
+  getUserByRole(role: String): Observable<any> {
     return this.http.get(API_URL + 'usersbyrole/' + role);
   }
 
@@ -81,5 +81,8 @@ export class APIService {
     return this.http.delete(API_URL + 'deleteUser/' + id);
   }
 
-  
+  getDriverLocations(driverId: number): Observable<any> {
+    return this.http.get(API_URL + 'getDriverLocations/' + driverId);
+  }
+
 }

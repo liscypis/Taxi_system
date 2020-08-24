@@ -1,6 +1,7 @@
 package com.lisowski.server.api;
 
 import com.lisowski.server.DTO.CarDTO;
+import com.lisowski.server.DTO.DriverPositionHistoryDTO;
 import com.lisowski.server.DTO.UserDTO;
 import com.lisowski.server.DTO.request.AddCarRequest;
 import com.lisowski.server.DTO.request.LocationLog;
@@ -9,8 +10,10 @@ import com.lisowski.server.DTO.response.Message;
 import com.lisowski.server.models.Car;
 import com.lisowski.server.services.DriverService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -51,6 +54,11 @@ public class DriverController {
     public ResponseEntity<Message> authenticateUser(@PathVariable("driverID") Long id) {
         return ResponseEntity.ok(new Message(driverService.getDriverPosition(id)));
     }
+    @GetMapping("/getDriverLocations/{driverID}")
+    public ResponseEntity<List<DriverPositionHistoryDTO>> getDriverLocations(@PathVariable("driverID") Long id) {
+        return ResponseEntity.ok(driverService.getDriverLocations(id));
+    }
+
     @GetMapping("/getCarByDriverId/{id}")
     public ResponseEntity<CarDTO> getCar(@PathVariable("id") Long id) {
         return ResponseEntity.ok(driverService.getDriverCar(id));

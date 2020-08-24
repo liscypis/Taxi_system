@@ -1,5 +1,7 @@
 package com.lisowski.server.DTO;
 
+import com.lisowski.server.models.DriverPositionHistory;
+import com.lisowski.server.repository.DriverPosHistRepository;
 import lombok.Data;
 
 import java.time.Instant;
@@ -18,5 +20,11 @@ public class DriverPositionHistoryDTO {
         this.data = data.plus(2, ChronoUnit.HOURS);
         this.location = location;
         this.driverId = driverId;
+    }
+
+    public DriverPositionHistoryDTO(DriverPositionHistory pos) {
+        this.id = pos.getId();
+        this.data = pos.getData().plus(2, ChronoUnit.HOURS);
+        this.location = pos.getLocation();
     }
 }
