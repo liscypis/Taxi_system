@@ -15,7 +15,7 @@ interface Role {
 })
 export class EditUserComponent implements OnInit {
   roles: Role[] = [
-    { value: 'user', viewValue: 'Użytkownik' },
+    { value: 'user', viewValue: 'Klient' },
     { value: 'driver', viewValue: 'Kierowca' },
     { value: 'dispatcher', viewValue: 'Dyspozytor' },
     { value: 'admin', viewValue: 'Admin' }
@@ -27,6 +27,7 @@ export class EditUserComponent implements OnInit {
 
   selectedRole: String;
   idUser: number;
+  selectedRow : boolean;
 
 
   dataForm = new FormGroup({
@@ -79,7 +80,7 @@ export class EditUserComponent implements OnInit {
     );
   }
   onEditRowClicked(row): void {
-    if(row.userName != "") {
+    if (row.userName != "") {
       this.idUser = row.id;
       this.dataForm.setValue({
         name: row.name,
@@ -89,8 +90,13 @@ export class EditUserComponent implements OnInit {
         phone: row.phoneNum,
         role: this.selectedRole
       })
+
+      if (!this.selectedRow)
+        this.selectedRow = row;
+      else
+        this.selectedRow = row;
     }
-   
+
 
   }
 

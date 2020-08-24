@@ -21,4 +21,20 @@
   .warn{
     color: red;
   }
+
+  .mat-column-id {
+    flex: 0 0 35px !important;
+    white-space: unset !important;
+  }
+
+  .mat-column-edit {
+    flex: 0 0 60px !important;
+    white-space: unset !important;
+  }
+  .mat-column-email {
+    flex: 0 0 200px !important;
+    white-space: unset !important;
+  }
+
+  
   

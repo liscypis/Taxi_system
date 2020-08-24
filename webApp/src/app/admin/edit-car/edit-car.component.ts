@@ -24,6 +24,7 @@ export class EditCarComponent implements OnInit {
     registrationNumber: new FormControl('', [Validators.minLength(5), Validators.maxLength(7), Validators.required]),
   })
   carSelected: boolean;
+  selectedRow: boolean;
 
 
   constructor(private api: APIService) { }
@@ -74,6 +75,10 @@ export class EditCarComponent implements OnInit {
       color: row.color,
       registrationNumber: row.registrationNumber
     })
+    if (!this.selectedRow)
+        this.selectedRow = row;
+      else
+        this.selectedRow = row;
   }
 
   onDeleteRowClicked(row): void {

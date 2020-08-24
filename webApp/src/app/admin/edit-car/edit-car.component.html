@@ -38,7 +38,7 @@
                     <ng-container matColumnDef="edit">
                         <mat-header-cell *matHeaderCellDef>Akcja </mat-header-cell>
                         <mat-cell *matCellDef="let row">
-                            <button mat-icon-button matTooltip="Click to Edit" (click)="onEditRowClicked(row)" class="iconbutton"
+                            <button mat-icon-button matTooltip="Click to Edit" (click)="onEditRowClicked(row)" class="iconbutton" [ngClass]="{ 'selected': row === selectedRow }"
                                 color="primary">
                                 <mat-icon aria-label="Edit">edit</mat-icon>
                             </button>

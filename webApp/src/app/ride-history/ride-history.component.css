@@ -65,3 +65,27 @@ h3{
     padding: 5px;
     text-align: center;
 }
+
+.mat-column-idRide {
+    flex: 0 0 50px !important;
+    white-space: unset !important;
+  }
+  .mat-column-idDriver {
+    flex: 0 0 50px !important;
+    white-space: unset !important;
+  }
+  .mat-column-rating {
+    flex: 0 0 50px !important;
+    white-space: unset !important;
+  }
+  .mat-column-price {
+    flex: 0 0 70px !important;
+    white-space: unset !important;
+  }
+  .mat-column-userSurname {
+    flex: 0 0 110px !important;
+    white-space: unset !important;
+  }
+  
+  
+  

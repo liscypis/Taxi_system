@@ -58,3 +58,7 @@ input[type=number] {
   table {
   width: 100%;
 }
+
+.selected {
+    background-color:#e3d3ff;
+  }

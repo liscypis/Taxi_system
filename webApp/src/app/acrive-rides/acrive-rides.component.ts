@@ -40,6 +40,7 @@ export class AcriveRidesComponent implements OnInit {
     maxZoom: 18,
     minZoom: 8,
   }
+  selectedRow: boolean;
   constructor(private apiService: APIService,
     private tokenStorageService: TokenStorageService) { }
 
@@ -75,6 +76,11 @@ export class AcriveRidesComponent implements OnInit {
     this.addPolyline(row.userPolyline, "purple");
     this.addPolyline(row.driverPolyline, "blue");
     this.getDriverLocation(Number(row.idDriver));
+
+    if (!this.selectedRow)
+      this.selectedRow = row;
+    else
+      this.selectedRow = row;
   }
 
   addPolyline(polyline: String, color: String) {

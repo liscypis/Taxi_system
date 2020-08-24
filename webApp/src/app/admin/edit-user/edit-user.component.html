@@ -50,7 +50,7 @@
                         <ng-container matColumnDef="edit">
                             <mat-header-cell *matHeaderCellDef>Akcja </mat-header-cell>
                             <mat-cell *matCellDef="let row">
-                                <button mat-icon-button matTooltip="Click to Edit" (click)="onEditRowClicked(row)"
+                                <button mat-icon-button matTooltip="Click to Edit" (click)="onEditRowClicked(row)" [ngClass]="{ 'selected': row === selectedRow }"
                                     class="iconbutton" color="primary">
                                     <mat-icon aria-label="Edit">edit</mat-icon>
                                 </button>
@@ -102,7 +102,7 @@
 
         <label>Rodzaj użytkownika </label>
         <mat-radio-group formControlName="role">
-            <mat-radio-button value="user">Użytkownik</mat-radio-button>
+            <mat-radio-button value="user">Klient</mat-radio-button>
             <mat-radio-button value="driver">Kierowca</mat-radio-button>
             <mat-radio-button value="dispatcher">Dyspozytor</mat-radio-button>
             <mat-radio-button value="admin">Admin</mat-radio-button>

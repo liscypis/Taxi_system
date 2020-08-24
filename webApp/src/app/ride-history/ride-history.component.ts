@@ -40,6 +40,7 @@ export class RideHistoryComponent implements OnInit {
     maxZoom: 18,
     minZoom: 8,
   }
+  selectedRow: boolean;
   constructor(private apiService: APIService,
     private tokenStorageService: TokenStorageService) { }
 
@@ -91,6 +92,11 @@ export class RideHistoryComponent implements OnInit {
     this.surname = row.driverSurname;
 
     this.getDriverRating(Number(row.idDriver));
+
+    if (!this.selectedRow)
+    this.selectedRow = row;
+  else
+    this.selectedRow = row;
   }
 
   addPolyline(polyline: String, color: String, isToUserPoly:boolean) {
