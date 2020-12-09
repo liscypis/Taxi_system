@@ -29,7 +29,7 @@ public class RideController {
     @Autowired
     RideService rideService;
 
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PostMapping("/initialOrderRide")
     public ResponseEntity<?> initialOrderRide(@Valid @RequestBody RideRequest request) {
         return rideService.createPreDetailsRide(request);

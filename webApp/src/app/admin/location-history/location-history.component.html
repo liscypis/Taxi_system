@@ -45,7 +45,7 @@
 
                         <ng-container matColumnDef="data">
                             <mat-header-cell *matHeaderCellDef> Data </mat-header-cell>
-                            <mat-cell *matCellDef="let element"> {{element.data | date:'dd.LL.yyyy HH:mm:ss'}} </mat-cell>
+                            <mat-cell *matCellDef="let element"> {{element.data | date:'dd.LL.yyyy HH:mm:ss' :'UTC'}} </mat-cell>
                         </ng-container>
 
                         <ng-container matColumnDef="location">

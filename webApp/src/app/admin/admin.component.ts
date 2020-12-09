@@ -54,7 +54,8 @@ export class AdminComponent implements OnInit {
     role: new FormControl('', [Validators.required])
   })
 
-  //edit car
+  selectedRow: boolean;
+
   
 
 
@@ -143,6 +144,11 @@ export class AdminComponent implements OnInit {
     console.log('Row clicked: ', row);
     this.driverSecelted = true;
     this.driverId = row.id;
+
+    if (!this.selectedRow)
+    this.selectedRow = row;
+  else
+    this.selectedRow = row;
   }
 
   addCar(): void {

@@ -371,7 +371,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback,
 
     private fun initNewRideListener() {
         disposableNewRide = Observable.interval(
-            1000, 10000,
+            1000, 5000,
             TimeUnit.MILLISECONDS
         )
             .observeOn(AndroidSchedulers.mainThread())

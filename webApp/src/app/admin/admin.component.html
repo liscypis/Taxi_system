@@ -92,7 +92,7 @@
 
                                         <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
                                         <mat-row (click)="onNoCarRowClicked(row)"
-                                            *matRowDef="let row; columns: displayedColumns;">
+                                            *matRowDef="let row; columns: displayedColumns;" [ngClass]="{ 'selected': row === selectedRow }">
                                         </mat-row>
                                     </table>
                                 </cdk-virtual-scroll-viewport>

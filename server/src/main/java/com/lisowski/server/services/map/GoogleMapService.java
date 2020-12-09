@@ -55,6 +55,7 @@ public class GoogleMapService {
                 minIndex = i;
             }
         }
+        System.out.println("Min index: "+ minIndex);
         return minIndex;
     }
 
